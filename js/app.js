@@ -1,3 +1,18 @@
+
+// مزامنة تلقائية فورية من Firebase إلى LocalStorage
+if (window.db) {
+    window.db.ref().on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(key => {
+                localStorage.setItem(key, JSON.stringify(data[key]));
+            });
+        }
+    });
+}
+
+
+
 /* ============ CORE DATA & UTIL ============ */
 /* STORAGE_KEY was a single global constant in the original single-tenant file.
    It is now `let` and becomes per-company: 'acc_system_data_v1__<companyId>',
