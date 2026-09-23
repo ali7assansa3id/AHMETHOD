@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام الحسابات المتكامل</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="loginBox">
+    <div id="loginPanel">
+      <div class="loginLogo">📒</div>
+      <h1>AHMETHOD</h1>
+      <h2>Smart Accounting &amp; Business Management</h2>
+      <p>تسجيل الدخول إلى نظام الحسابات المتكامل</p>
+      <input id="liUser" placeholder="اسم المستخدم" autocomplete="username">
+      <input id="liPass" type="password" placeholder="كلمة السر" autocomplete="current-password">
+      <button class="btn" onclick="doLogin()">دخول</button>
+      <button class="btn secondary loginRegisterBtn" onclick="openRegister()">إنشاء مستخدم جديد باشتراك</button>
+      <div class="loginErr" id="liErr"></div>
+      <div class="adminHint">المستخدم الأساسي: <b>admin</b> &nbsp;|&nbsp; كلمة السر: <b>admin123</b></div>
+    </div>
+
+    <div id="registerPanel" style="display:none;">
+      <div class="loginLogo">✦</div>
+      <h1>إنشاء اشتراك جديد</h1>
+      <p>أنشئ حساب شركتك ثم استخدم حساب مدير الشركة لإضافة الموظفين وتحديد صلاحياتهم.</p>
+      <input id="regCompany" placeholder="اسم الشركة / المنشأة">
+      <input id="regUser" placeholder="اسم المستخدم الرئيسي" autocomplete="username">
+      <input id="regPass" type="password" placeholder="كلمة السر (6 أحرف على الأقل)" autocomplete="new-password">
+      <input id="regPass2" type="password" placeholder="تأكيد كلمة السر" autocomplete="new-password">
+      <select id="regPlan" class="loginSelect">
+        <option value="trial">اشتراك تجريبي — 14 يوم</option>
+        <option value="basic">الاشتراك الأساسي — 30 يوم</option>
+        <option value="professional">الاشتراك الاحترافي — سنة</option>
+      </select>
+      <button class="btn" onclick="registerSubscriber()">إنشاء الحساب والاشتراك</button>
+      <button class="btn secondary loginRegisterBtn" onclick="backToLogin()">العودة لتسجيل الدخول</button>
+      <div class="loginErr" id="regErr"></div>
+    </div>
+  </div>
+</div>
+
+<div id="appShell">
+  <div id="topbar"><span class="brand">📒 نظام الحسابات</span><div id="navMain" style="display:flex;gap:4px;"></div><div id="userBox"></div></div>
+  <div id="subbar"></div>
+  <div id="content"></div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+
+<script src="js/app.js"></script>
+</body>
+</html>
