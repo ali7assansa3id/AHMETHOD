@@ -1,2 +1,13 @@
-# AHMETHOD
-Smart Accounting &amp; Business Management
+# نظام الحسابات المتكامل
+
+نسخة GitHub من النظام الأصلي، مع فصل HTML وCSS وJavaScript بدون تغيير منطق التطبيق أو خصائصه.
+
+## التشغيل
+افتح `index.html` مباشرة، أو استخدم GitHub Pages.
+
+## المكونات
+- `index.html` — الواجهة والهيكل.
+- `css/style.css` — جميع التنسيقات الأصلية.
+- `js/app.js` — منطق النظام وجميع الوظائف الأصلية.
+
+> البيانات المحلية تعتمد على `localStorage` في المتصفح كما في النسخة الأصلية.
