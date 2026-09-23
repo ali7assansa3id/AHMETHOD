@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHMETHOD — Smart Accounting &amp; Business Management</title>
+<link rel="stylesheet" href="./css/style.css">
+<!-- SheetJS (Excel import/export), required by js/app.js. A local copy can be
+     placed at ./libs/xlsx.full.min.js for fully offline use (see README);
+     falls back to the CDN copy otherwise. -->
+<script src="./libs/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';"></script>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="loginBox">
+    <h1>AHMETHOD</h1>
+    <p>Smart Accounting &amp; Business Management — سجّل الدخول للمتابعة</p>
+    <input id="liUser" placeholder="اسم المستخدم" autocomplete="username">
+    <input id="liPass" type="password" placeholder="كلمة السر" autocomplete="current-password">
+    <button class="btn" onclick="platformDoLogin()">دخول</button>
+    <div class="loginErr" id="liErr"></div>
+    <button class="linkBtn" onclick="openRegisterModal()">+ إنشاء حساب / شركة جديدة</button>
+    <p style="margin-top:16px;font-size:11px;color:var(--muted)">حساب المدير العام (Super Admin) الافتراضي — اسم المستخدم: <b>admin</b> وكلمة السر: <b>admin123</b></p>
+  </div>
+</div>
+
+<div id="subExpiredScreen">
+  <div class="loginBox">
+    <h1>⚠️ <span id="subExpiredMsg">انتهى اشتراكك</span></h1>
+    <p>الشركة: <b id="subExpiredCompanyName"></b></p>
+    <p>تاريخ انتهاء الاشتراك: <b id="subExpiredEnd"></b></p>
+    <p style="color:var(--muted);font-size:12px;">للتجديد أو الاستفسار يرجى التواصل مع الدعم الفني، أو تواصل مدير النظام (Super Admin) لتفعيل الاشتراك.</p>
+    <button class="btn secondary" onclick="backToLoginFromExpired()">رجوع لتسجيل الدخول</button>
+  </div>
+</div>
+
+<div id="superAdminShell"></div>
+
+<div id="appShell">
+  <div id="topbar"><span class="brand">📒 نظام الحسابات</span><div id="navMain" style="display:flex;gap:4px;"></div><div id="userBox"></div></div>
+  <div id="subbar"></div>
+  <div id="content"></div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Load order matters: app.js (the original accounting engine) first, since
+     the multi-tenant layer below builds on its functions (loadDB, saveDB,
+     openModal, toast, uid, fmt, defaultData, can, isAdmin, ...) without
+     duplicating any of them. -->
+<script src="./js/app.js"></script>
+<script src="./js/utils.js"></script>
+<script src="./js/storage.js"></script>
+<script src="./js/permissions.js"></script>
+<script src="./js/users.js"></script>
+<script src="./js/companies.js"></script>
+<script src="./js/auth.js"></script>
+</body>
+</html>
