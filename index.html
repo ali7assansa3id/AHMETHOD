@@ -5,10 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AHMETHOD — Smart Accounting &amp; Business Management</title>
 <link rel="stylesheet" href="./css/style.css">
-<!-- SheetJS (Excel import/export), required by js/app.js. A local copy can be
-     placed at ./libs/xlsx.full.min.js for fully offline use (see README);
-     falls back to the CDN copy otherwise. -->
+<!-- SheetJS (Excel import/export) -->
 <script src="./libs/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';"></script>
+
+<!-- 1. استدعاء مكتبات Firebase السحابية الجاهزة للمتصفح -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  // 2. إعداد بيانات الاتصال الخاصة بمشروعك (ahmethodpro)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCnuv-hBxucSgRN-_SD0i6jx3Xv7CR_gQU",
+    authDomain: "ahmethodpro.firebaseapp.com",
+    databaseURL: "https://ahmethodpro-default-rtdb.firebaseio.com", // إذا كان رابط قاعدة البيانات مختلفاً في حسابك فاستبدله هنا
+    projectId: "ahmethodpro",
+    storageBucket: "ahmethodpro.firebasestorage.app",
+    messagingSenderId: "545312965626",
+    appId: "1:545312965626:web:94eb7366be72a6dc965a43",
+    measurementId: "G-L542GK25F0"
+  };
+
+  // 3. تهيئة الاتصال بـ Firebase وتوفيره للمشروع
+  firebase.initializeApp(firebaseConfig);
+  window.db = firebase.database();
+</script>
 </head>
 <body>
 
@@ -21,7 +41,7 @@
     <button class="btn" onclick="platformDoLogin()">دخول</button>
     <div class="loginErr" id="liErr"></div>
     <button class="linkBtn" onclick="openRegisterModal()">+ إنشاء حساب / شركة جديدة</button>
-    <p style="margin-top:16px;font-size:11px;color:var(--muted)">حساب المدير العام (Super Admin) الافتراضي — اسم المستخدم: <b>admin</b> وكلمة السر: <b>admin123</b></p>
+
   </div>
 </div>
 
@@ -46,10 +66,7 @@
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
-<!-- Load order matters: app.js (the original accounting engine) first, since
-     the multi-tenant layer below builds on its functions (loadDB, saveDB,
-     openModal, toast, uid, fmt, defaultData, can, isAdmin, ...) without
-     duplicating any of them. -->
+<!-- 4. استدعاء ملفات المشروع بالترتيب -->
 <script src="./js/app.js"></script>
 <script src="./js/utils.js"></script>
 <script src="./js/storage.js"></script>
