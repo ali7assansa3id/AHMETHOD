@@ -1,32 +1,32 @@
 /* =========================================================
-   ظ†ط¸ط§ظ… ط§ظ„ظ…ط­ط§ط³ط¨ط© ظˆط§ظ„ظ…ط®ط§ط²ظ† ط§ظ„ظ…طھظƒط§ظ…ظ„ (ERP System)
-   ط§ظ„ط¬ط²ط، ط§ظ„ط£ظˆظ„: ط§ظ„طھظ‡ظٹط¦ط© + ط¥ط¯ط§ط±ط© ط§ظ„ط­ط³ط§ط¨ط§طھ + ط§ظ„ظپظˆط§طھظٹط±
+   نظام المحاسبة والمخازن المتكامل (ERP System)
+   الجزء الأول: التهيئة + إدارة الحسابات + الفواتير
    ========================================================= */
 
-// ---------- 1. ط§ظ„طھظ‡ظٹط¦ط© ظˆظ‚ط§ط¹ط¯ط© ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…ط­ظ„ظٹط© ----------
+// ---------- 1. التهيئة وقاعدة البيانات المحلية ----------
 let DB = {
   users: [
-    { id: 1, name: 'ط§ظ„ظ…ط¯ظٹط± ط§ظ„ط¹ط§ظ…', user: 'admin', pass: 'admin123', role: 'admin', perms: ['all'] }
+    { id: 1, name: 'المدير العام', user: 'admin', pass: 'admin123', role: 'admin', perms: ['all'] }
   ],
   accounts: [
-    { id: 100, code: '1', name: 'ط§ظ„ط£طµظˆظ„', type: 'asset', parentId: null },
-    { id: 101, code: '11', name: 'ط§ظ„ط£طµظˆظ„ ط§ظ„ظ…طھط¯ط§ظˆظ„ط©', type: 'asset', parentId: 100 },
-    { id: 102, code: '111', name: 'ط§ظ„ط®ط²ظٹظ†ط© ط§ظ„ط±ط¦ظٹط³ظٹط©', type: 'asset', parentId: 101 },
-    { id: 103, code: '112', name: 'ط§ظ„ط¨ظ†ظƒ', type: 'asset', parentId: 101 },
-    { id: 104, code: '113', name: 'ط§ظ„ط¹ظ…ظ„ط§ط،', type: 'asset', parentId: 101 },
-    { id: 105, code: '114', name: 'ط§ظ„ظ…ط®ط²ظˆظ†', type: 'asset', parentId: 101 },
-    { id: 200, code: '2', name: 'ط§ظ„ط§ظ„طھط²ط§ظ…ط§طھ', type: 'liability', parentId: null },
-    { id: 201, code: '21', name: 'ط§ظ„ظ…ظˆط±ط¯ظٹظ†', type: 'liability', parentId: 200 },
-    { id: 300, code: '3', name: 'ط§ظ„ط¥ظٹط±ط§ط¯ط§طھ', type: 'income', parentId: null },
-    { id: 301, code: '31', name: 'ظ…ط¨ظٹط¹ط§طھ ط§ظ„ط¨ط¶ط§ط¦ط¹', type: 'income', parentId: 300 },
-    { id: 400, code: '4', name: 'ط§ظ„ظ…طµط±ظˆظپط§طھ', type: 'expense', parentId: null },
-    { id: 401, code: '41', name: 'طھظƒظ„ظپط© ط§ظ„ط¨ط¶ط§ط¹ط© ط§ظ„ظ…ط¨ط§ط¹ط©', type: 'expense', parentId: 400 }
+    { id: 100, code: '1', name: 'الأصول', type: 'asset', parentId: null },
+    { id: 101, code: '11', name: 'الأصول المتداولة', type: 'asset', parentId: 100 },
+    { id: 102, code: '111', name: 'الخزينة الرئيسية', type: 'asset', parentId: 101 },
+    { id: 103, code: '112', name: 'البنك', type: 'asset', parentId: 101 },
+    { id: 104, code: '113', name: 'العملاء', type: 'asset', parentId: 101 },
+    { id: 105, code: '114', name: 'المخزون', type: 'asset', parentId: 101 },
+    { id: 200, code: '2', name: 'الالتزامات', type: 'liability', parentId: null },
+    { id: 201, code: '21', name: 'الموردين', type: 'liability', parentId: 200 },
+    { id: 300, code: '3', name: 'الإيرادات', type: 'income', parentId: null },
+    { id: 301, code: '31', name: 'مبيعات البضائع', type: 'income', parentId: 300 },
+    { id: 400, code: '4', name: 'المصروفات', type: 'expense', parentId: null },
+    { id: 401, code: '41', name: 'تكلفة البضاعة المباعة', type: 'expense', parentId: 400 }
   ],
   items: [
-    { id: 1, code: 'IT001', name: 'طµظ†ظپ ط§ظپطھط±ط§ط¶ظٹ', unit: 'ظ‚ط·ط¹ط©', minQty: 5 }
+    { id: 1, code: 'IT001', name: 'صنف افتراضي', unit: 'قطعة', minQty: 5 }
   ],
   warehouses: [
-    { id: 1, name: 'ط§ظ„ظ…ط®ط²ظ† ط§ظ„ط±ط¦ظٹط³ظٹ', code: 'WH1' }
+    { id: 1, name: 'المخزن الرئيسي', code: 'WH1' }
   ],
   customers: [],
   suppliers: [],
@@ -40,9 +40,9 @@ let DB = {
 let currentUserId = null;
 
 /* ---------- Firebase Realtime Database ---------- */
-// ط¥ط¹ط¯ط§ط¯ط§طھ ظ…ط´ط±ظˆط¹ظƒ ط¹ظ„ظ‰ Firebase (ahmethodpro) â€” ط§ظ„ظ‚ظٹظ… ط¯ظٹ client-side API key
-// ط¹ط§ط¯ظٹ طھظƒظˆظ† ط¸ط§ظ‡ط±ط© ظپظٹ ط§ظ„ظƒظˆط¯طŒ ط§ظ„ط­ظ…ط§ظٹط© ط§ظ„ط­ظ‚ظٹظ‚ظٹط© ط¨طھظٹط¬ظٹ ظ…ظ† ط§ظ„ظ€ Security Rules
-// ظپظٹ ظ„ظˆط­ط© طھط­ظƒظ… Firebase (Realtime Database â†’ Rules)طŒ ظ…ط´ ظ…ظ† ط¥ط®ظپط§ط، ط§ظ„ظ…ظپطھط§ط­ ط¯ظ‡.
+// إعدادات مشروعك على Firebase (ahmethodpro) — القيم دي client-side API key
+// عادي تكون ظاهرة في الكود، الحماية الحقيقية بتيجي من الـ Security Rules
+// في لوحة تحكم Firebase (Realtime Database → Rules)، مش من إخفاء المفتاح ده.
 const firebaseConfig = {
   apiKey: "AIzaSyCnuv-hBxucSgRN-_SD0i6jx3Xv7CR_gQU",
   authDomain: "ahmethodpro.firebaseapp.com",
@@ -57,16 +57,16 @@ firebase.initializeApp(firebaseConfig);
 const fbRef = firebase.database().ref('ERP_FULL_DB');
 
 function saveDB() {
-  // ظ†ط³ط®ط© ظ…ط­ظ„ظٹط© ظپظˆط±ظٹط© (طھط´طھط؛ظ„ ط­طھظ‰ ظ„ظˆ ط§ظ„ظ†طھ ظ…ظ‚ط·ظˆط¹ ظ„ط­ط¸طھظ‡ط§)
+  // نسخة محلية فورية (تشتغل حتى لو النت مقطوع لحظتها)
   try {
     localStorage.setItem('ERP_FULL_DB', JSON.stringify(DB));
   } catch(e) {
-    console.error('ظپط´ظ„ ط­ظپط¸ ط§ظ„ط¨ظٹط§ظ†ط§طھ ظپظٹ LocalStorage', e);
+    console.error('فشل حفظ البيانات في LocalStorage', e);
   }
-  // ظ…ط²ط§ظ…ظ†ط© ظ…ط¹ Firebase â€” ظ„ظˆ ظپط´ظ„طھطŒ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…ط­ظ„ظٹط© ط³ظ„ظٹظ…ط© ظˆط§ظ„ظ†ط¸ط§ظ… ظٹظƒظ…ظ„ ط´ط؛ظ„ ط¹ط§ط¯ظٹ
+  // مزامنة مع Firebase — لو فشلت، البيانات المحلية سليمة والنظام يكمل شغل عادي
   fbRef.set(DB).catch(err => {
-    console.error('ظپط´ظ„ ط­ظپط¸ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط¹ظ„ظ‰ Firebase', err);
-    toast('طھط¹ط°ظ‘ط±طھ ط§ظ„ظ…ط²ط§ظ…ظ†ط© ظ…ط¹ ظ‚ط§ط¹ط¯ط© ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط³ط­ط§ط¨ظٹط© (طھظ… ط§ظ„ط­ظپط¸ ظ…ط­ظ„ظٹظ‹ط§ ظپظ‚ط·)');
+    console.error('فشل حفظ البيانات على Firebase', err);
+    toast('تعذّرت المزامنة مع قاعدة البيانات السحابية (تم الحفظ محليًا فقط)');
   });
 }
 
@@ -77,13 +77,13 @@ function loadDB(onReady) {
       if (remote) {
         DB = { ...DB, ...remote };
       } else {
-        // ط£ظˆظ„ ظ…ط±ط© طھظپطھط­ ظپظٹظ‡ط§ ظ‚ط§ط¹ط¯ط© ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط³ط­ط§ط¨ظٹط© ظپط§ط¶ظٹط© - ظ†ط±ظپط¹ظ„ظ‡ط§ ط£ظٹ ظ†ط³ط®ط© ظ…ط­ظ„ظٹط© ظ‚ط¯ظٹظ…ط© ظ…ظˆط¬ظˆط¯ط©
+        // أول مرة تفتح فيها قاعدة البيانات السحابية فاضية - نرفعلها أي نسخة محلية قديمة موجودة
         mergeLocalFallback();
       }
       if (onReady) onReady();
     })
     .catch(err => {
-      console.error('طھط¹ط°ط± ط§ظ„ط§طھطµط§ظ„ ط¨ظ€ Firebase â€” ط³ظٹطھظ… ط§ط³طھط®ط¯ط§ظ… ط¢ط®ط± ظ†ط³ط®ط© ظ…ط­ظ„ظٹط© ظ…ط­ظپظˆط¸ط©', err);
+      console.error('تعذر الاتصال بـ Firebase — سيتم استخدام آخر نسخة محلية محفوظة', err);
       mergeLocalFallback();
       if (onReady) onReady();
     });
@@ -95,12 +95,12 @@ function mergeLocalFallback() {
     try {
       DB = { ...DB, ...JSON.parse(saved) };
     } catch(e) {
-      console.error('ط®ط·ط£ ظپظٹ طھط­ظ…ظٹظ„ ط§ظ„ظ†ط³ط®ط© ط§ظ„ظ…ط­ظ„ظٹط© ط§ظ„ط§ط­طھظٹط§ط·ظٹط©');
+      console.error('خطأ في تحميل النسخة المحلية الاحتياطية');
     }
   }
 }
 
-// ---------- 2. ط£ط¯ظˆط§طھ ظ…ط³ط§ط¹ط¯ط© (Utility Functions) ----------
+// ---------- 2. أدوات مساعدة (Utility Functions) ----------
 function uid() { return Date.now() + Math.floor(Math.random() * 1000); }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function fmt(num) { return Number(num || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -117,7 +117,7 @@ function logAudit(action, module, details) {
   const u = DB.users.find(x => x.id === currentUserId);
   DB.auditLogs.push({
     id: uid(),
-    user: u ? u.name : 'ط؛ظٹط± ظ…ط¹ط±ظˆظپ',
+    user: u ? u.name : 'غير معروف',
     action, module, details,
     date: new Date().toLocaleString('ar-EG')
   });
@@ -140,8 +140,8 @@ function openModal(title, htmlContent, onConfirm, hideButtons = false) {
         <h3 style="margin-bottom:15px; border-bottom:1px solid #ccc; padding-bottom:8px;">${title}</h3>
         <div class="modalBody">${htmlContent}</div>
         <div style="margin-top:20px; text-align:left; display:flex; gap:8px; justify-content:flex-end;">
-          ${!hideButtons ? `<button class="btn" id="modalOkBtn">ط­ظپط¸</button>` : ''}
-          <button class="btn secondary" onclick="closeModal()">ط¥ط؛ظ„ط§ظ‚</button>
+          ${!hideButtons ? `<button class="btn" id="modalOkBtn">حفظ</button>` : ''}
+          <button class="btn secondary" onclick="closeModal()">إغلاق</button>
         </div>
       </div>
     </div>
@@ -155,7 +155,7 @@ function closeModal() {
   document.getElementById('modalRoot').innerHTML = '';
 }
 
-/* ---------- 3. طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظˆط¥ط¯ط§ط±ط© ط§ظ„ط¬ظ„ط³ط§طھ ---------- */
+/* ---------- 3. تسجيل الدخول وإدارة الجلسات ---------- */
 function doLogin() {
   const uInput = document.getElementById('liUser').value.trim();
   const pInput = document.getElementById('liPass').value.trim();
@@ -169,15 +169,15 @@ function doLogin() {
     renderUserBox();
     renderNav();
     renderAll();
-    logAudit('طھط³ط¬ظٹظ„ ط¯ط®ظˆظ„', 'ط§ظ„ط£ظ…ط§ظ†', 'طھظ… طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ط¨ظ†ط¬ط§ط­');
-    toast('ظ…ط±ط­ط¨ط§ظ‹ ط¨ظƒ ظپظٹ ط§ظ„ظ†ط¸ط§ظ…');
+    logAudit('تسجيل دخول', 'الأمان', 'تم تسجيل الدخول بنجاح');
+    toast('مرحباً بك في النظام');
   } else {
-    errEl.innerText = 'ط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ… ط£ظˆ ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط± ط؛ظٹط± طµط­ظٹط­ط©';
+    errEl.innerText = 'اسم المستخدم أو كلمة المرور غير صحيحة';
   }
 }
 
 function doLogout() {
-  logAudit('طھط³ط¬ظٹظ„ ط®ط±ظˆط¬', 'ط§ظ„ط£ظ…ط§ظ†', 'ط®ط±ظˆط¬ ط§ظ„ظ…ط³طھط®ط¯ظ…');
+  logAudit('تسجيل خروج', 'الأمان', 'خروج المستخدم');
   currentUserId = null;
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -187,37 +187,37 @@ function doLogout() {
 function renderUserBox() {
   const u = DB.users.find(x => x.id === currentUserId);
   document.getElementById('userBox').innerHTML = `
-    <span>ط§ظ„ظ…ط³طھط®ط¯ظ…: <b>${u ? u.name : ''}</b> (${u ? u.role : ''})</span>
-    <button class="btn danger" style="margin-right:10px; padding:4px 8px; font-size:12px;" onclick="doLogout()">طھط³ط¬ظٹظ„ ط§ظ„ط®ط±ظˆط¬</button>
+    <span>المستخدم: <b>${u ? u.name : ''}</b> (${u ? u.role : ''})</span>
+    <button class="btn danger" style="margin-right:10px; padding:4px 8px; font-size:12px;" onclick="doLogout()">تسجيل الخروج</button>
   `;
 }
 
 function renderNav() {
   const nav = document.getElementById('navMain');
   nav.innerHTML = `
-    <button class="btn" onclick="renderInventory(document.getElementById('content'))">ط§ظ„ط£طµظ†ط§ظپ ظˆط§ظ„ظ…ط®ط²ظˆظ†</button>
-    <button class="btn" onclick="renderStockReceive(document.getElementById('content'))">ط¥ط°ظ† ط§ط³طھظ„ط§ظ…</button>
-    <button class="btn" onclick="renderStockIssue(document.getElementById('content'))">ط¥ط°ظ† طµط±ظپ</button>
-    <button class="btn" onclick="renderStockTransfer(document.getElementById('content'))">طھط­ظˆظٹظ„ ظ…ط®ط²ظ†ظٹ</button>
-    <button class="btn" onclick="renderInvoices(document.getElementById('content'))">ط§ظ„ظپظˆط§طھظٹط± ظˆط§ظ„ظ…ط¨ظٹط¹ط§طھ</button>
-    <button class="btn" onclick="renderAccountsTree(document.getElementById('content'))">ط´ط¬ط±ط© ط§ظ„ط­ط³ط§ط¨ط§طھ</button>
-    <button class="btn" onclick="renderStockOps(document.getElementById('content'))">ط³ط¬ظ„ ط§ظ„ط­ط±ظƒط§طھ</button>
-    <button class="btn secondary" onclick="renderInvImportExport(document.getElementById('content'))">Excel ط§ط³طھظٹط±ط§ط¯/طھطµط¯ظٹط±</button>
+    <button class="btn" onclick="renderInventory(document.getElementById('content'))">الأصناف والمخزون</button>
+    <button class="btn" onclick="renderStockReceive(document.getElementById('content'))">إذن استلام</button>
+    <button class="btn" onclick="renderStockIssue(document.getElementById('content'))">إذن صرف</button>
+    <button class="btn" onclick="renderStockTransfer(document.getElementById('content'))">تحويل مخزني</button>
+    <button class="btn" onclick="renderInvoices(document.getElementById('content'))">الفواتير والمبيعات</button>
+    <button class="btn" onclick="renderAccountsTree(document.getElementById('content'))">شجرة الحسابات</button>
+    <button class="btn" onclick="renderStockOps(document.getElementById('content'))">سجل الحركات</button>
+    <button class="btn secondary" onclick="renderInvImportExport(document.getElementById('content'))">Excel استيراد/تصدير</button>
   `;
 }
 
-/* ---------- 4. ط´ط¬ط±ط© ط§ظ„ط­ط³ط§ط¨ط§طھ ظˆط§ظ„ط¯ظپط§طھط± ---------- */
+/* ---------- 4. شجرة الحسابات والدفاتر ---------- */
 function renderAccountsTree(root) {
   root.innerHTML = `
     <div class="card">
       <div class="cardHead" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>ط´ط¬ط±ط© ط§ظ„ط­ط³ط§ط¨ط§طھ ط§ظ„ط¹ط§ظ…ط©</h2>
-        <button class="btn" onclick="openAccountModal()">+ ط¥ط¶ط§ظپط© ط­ط³ط§ط¨ ط¬ط¯ظٹط¯</button>
+        <h2>شجرة الحسابات العامة</h2>
+        <button class="btn" onclick="openAccountModal()">+ إضافة حساب جديد</button>
       </div>
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>ط§ظ„ظƒظˆط¯</th><th>ط§ط³ظ… ط§ظ„ط­ط³ط§ط¨</th><th>ط§ظ„ظ†ظˆط¹</th><th>ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط£ط¨</th><th>ط¥ط¬ط±ط§ط،ط§طھ</th></tr>
+            <tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الحساب الأب</th><th>إجراءات</th></tr>
           </thead>
           <tbody>
             ${DB.accounts.map(acc => {
@@ -228,7 +228,7 @@ function renderAccountsTree(root) {
                 <td>${acc.type}</td>
                 <td>${parent ? parent.name : '-'}</td>
                 <td>
-                  <button class="btn secondary" style="padding:2px 6px;" onclick="openAccountModal(${acc.id})">طھط¹ط¯ظٹظ„</button>
+                  <button class="btn secondary" style="padding:2px 6px;" onclick="openAccountModal(${acc.id})">تعديل</button>
                 </td>
               </tr>`;
             }).join('')}
@@ -241,20 +241,20 @@ function renderAccountsTree(root) {
 
 function openAccountModal(id = null) {
   const acc = id ? DB.accounts.find(x => x.id === id) : { code: '', name: '', type: 'asset', parentId: '' };
-  openModal(id ? 'طھط¹ط¯ظٹظ„ ط­ط³ط§ط¨' : 'ط¥ط¶ط§ظپط© ط­ط³ط§ط¨ ط¬ط¯ظٹط¯', `
-    <div class="field" style="margin-bottom:8px;"><label>ظƒظˆط¯ ط§ظ„ط­ط³ط§ط¨</label><input id="accCode" value="${acc.code}"></div>
-    <div class="field" style="margin-bottom:8px;"><label>ط§ط³ظ… ط§ظ„ط­ط³ط§ط¨</label><input id="accName" value="${acc.name}"></div>
-    <div class="field" style="margin-bottom:8px;"><label>ظ†ظˆط¹ ط§ظ„ط­ط³ط§ط¨</label>
+  openModal(id ? 'تعديل حساب' : 'إضافة حساب جديد', `
+    <div class="field" style="margin-bottom:8px;"><label>كود الحساب</label><input id="accCode" value="${acc.code}"></div>
+    <div class="field" style="margin-bottom:8px;"><label>اسم الحساب</label><input id="accName" value="${acc.name}"></div>
+    <div class="field" style="margin-bottom:8px;"><label>نوع الحساب</label>
       <select id="accType">
-        <option value="asset" ${acc.type==='asset'?'selected':''}>ط£طµظˆظ„</option>
-        <option value="liability" ${acc.type==='liability'?'selected':''}>ط§ظ„طھط²ط§ظ…ط§طھ</option>
-        <option value="income" ${acc.type==='income'?'selected':''}>ط¥ظٹط±ط§ط¯ط§طھ</option>
-        <option value="expense" ${acc.type==='expense'?'selected':''}>ظ…طµط±ظˆظپط§طھ</option>
+        <option value="asset" ${acc.type==='asset'?'selected':''}>أصول</option>
+        <option value="liability" ${acc.type==='liability'?'selected':''}>التزامات</option>
+        <option value="income" ${acc.type==='income'?'selected':''}>إيرادات</option>
+        <option value="expense" ${acc.type==='expense'?'selected':''}>مصروفات</option>
       </select>
     </div>
-    <div class="field"><label>ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط£ط¨</label>
+    <div class="field"><label>الحساب الأب</label>
       <select id="accParent">
-        <option value="">ظ„ط§ ظٹظˆط¬ط¯ (ط­ط³ط§ط¨ ط±ط¦ظٹط³ظٹ)</option>
+        <option value="">لا يوجد (حساب رئيسي)</option>
         ${DB.accounts.filter(a => a.id !== id).map(a => `<option value="${a.id}" ${acc.parentId===a.id?'selected':''}>${a.name} (${a.code})</option>`).join('')}
       </select>
     </div>
@@ -267,7 +267,7 @@ function saveAccount(id) {
   const type = document.getElementById('accType').value;
   const parentId = Number(document.getElementById('accParent').value) || null;
 
-  if(!code || !name) { toast('ط¨ظٹط§ظ†ط§طھ ط§ظ„ط­ط³ط§ط¨ ط؛ظٹط± ظ…ظƒطھظ…ظ„ط©'); return; }
+  if(!code || !name) { toast('بيانات الحساب غير مكتملة'); return; }
 
   if(id) {
     const acc = DB.accounts.find(x => x.id === id);
@@ -275,15 +275,15 @@ function saveAccount(id) {
   } else {
     DB.accounts.push({ id: uid(), code, name, type, parentId });
   }
-  saveDB(); closeModal(); renderAccountsTree(document.getElementById('content')); toast('طھظ… ط­ظپط¸ ط§ظ„ط­ط³ط§ط¨');
+  saveDB(); closeModal(); renderAccountsTree(document.getElementById('content')); toast('تم حفظ الحساب');
 }
 
 /* =========================================================
-   ظ†ط¸ط§ظ… ط§ظ„ظ…ط­ط§ط³ط¨ط© ظˆط§ظ„ظ…ط®ط§ط²ظ† ط§ظ„ظ…طھظƒط§ظ…ظ„ (ERP System)
-   ط§ظ„ط¬ط²ط، ط§ظ„ط«ط§ظ†ظٹ: ط¥ط¯ط§ط±ط© ط§ظ„ظ…ط®ط²ظˆظ† + FIFO + ط§ظ„ط­ط±ظƒط§طھ ظˆط§ظ„طھطµط¯ظٹط±
+   نظام المحاسبة والمخازن المتكامل (ERP System)
+   الجزء الثاني: إدارة المخزون + FIFO + الحركات والتصدير
    ========================================================= */
 
-/* ---------- 5. ظ…ظ†ط·ظ‚ طھظ‚ظٹظٹظ… ط§ظ„ظ…ط®ط²ظˆظ† ظˆط­ط³ط§ط¨ط§طھ (FIFO) ---------- */
+/* ---------- 5. منطق تقييم المخزون وحسابات (FIFO) ---------- */
 function getItemStock(itemId, warehouseId = null) {
   let batches = DB.stockBatches.filter(b => b.itemId === itemId && b.remaining > 0);
   if (warehouseId) {
@@ -311,7 +311,7 @@ function consumeStockFIFO(itemId, warehouseId, qtyToConsume, updateDB = true) {
   let remainingNeed = qtyToConsume;
   let totalCost = 0;
   
-  // طھط±طھظٹط¨ ط§ظ„ط¯ظپط¹ط§طھ ط§ظ„ظ…طھط§ط­ط© ط­ط³ط¨ ط§ظ„طھط§ط±ظٹط® (ط§ظ„ظˆط§ط±ط¯ ط£ظˆظ„ط§ظ‹ ظٹطµط±ظپ ط£ظˆظ„ط§ظ‹)
+  // ترتيب الدفعات المتاحة حسب التاريخ (الوارد أولاً يصرف أولاً)
   let batches = DB.stockBatches
     .filter(b => b.itemId === itemId && b.warehouseId === warehouseId && b.remaining > 0)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -326,12 +326,12 @@ function consumeStockFIFO(itemId, warehouseId, qtyToConsume, updateDB = true) {
     }
   }
 
-  if (remainingNeed > 0.0001) return null; // ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھظˆظپط± ظ„ط§ ظٹظƒظپظٹ
+  if (remainingNeed > 0.0001) return null; // الرصيد المتوفر لا يكفي
   if (updateDB) saveDB();
   return { cost: totalCost };
 }
 
-/* ---------- 6. ط¥ط¯ط§ط±ط© ط§ظ„ط£طµظ†ط§ظپ ظˆظ‚ط§ط¦ظ…ط© ط§ظ„ظ…ط®ط²ظˆظ† ---------- */
+/* ---------- 6. إدارة الأصناف وقائمة المخزون ---------- */
 function renderAll() {
   const content = document.getElementById('content');
   if (content) renderInventory(content);
@@ -341,13 +341,13 @@ function renderInventory(root) {
   root.innerHTML = `
     <div class="card">
       <div class="cardHead" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>ظ‚ط§ط¦ظ…ط© ط§ظ„ط£طµظ†ط§ظپ ظˆط§ظ„ظ…ط®ط²ظˆظ†</h2>
-        <button class="btn" onclick="openItemModal()">+ ط¥ط¶ط§ظپط© طµظ†ظپ ط¬ط¯ظٹط¯</button>
+        <h2>قائمة الأصناف والمخزون</h2>
+        <button class="btn" onclick="openItemModal()">+ إضافة صنف جديد</button>
       </div>
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>ط§ظ„ظƒظˆط¯</th><th>ط§ط³ظ… ط§ظ„طµظ†ظپ</th><th>ط§ظ„ظˆط­ط¯ط©</th><th>ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ…ط®ط²ظˆظ†</th><th>ط¥ط¬ط±ط§ط،ط§طھ</th></tr>
+            <tr><th>الكود</th><th>اسم الصنف</th><th>الوحدة</th><th>إجمالي المخزون</th><th>إجراءات</th></tr>
           </thead>
           <tbody>
             ${DB.items.map(i => `
@@ -357,12 +357,12 @@ function renderInventory(root) {
                 <td>${i.unit}</td>
                 <td>${fmt(getItemStock(i.id))}</td>
                 <td>
-                  <button class="btn secondary" style="padding:3px 8px;" onclick="openItemCard(${i.id})">ظƒط§ط±طھ ط§ظ„طµظ†ظپ</button>
-                  <button class="btn" style="padding:3px 8px;" onclick="openItemModal(${i.id})">طھط¹ط¯ظٹظ„</button>
-                  <button class="btn danger" style="padding:3px 8px;" onclick="deleteItem(${i.id})">ط­ط°ظپ</button>
+                  <button class="btn secondary" style="padding:3px 8px;" onclick="openItemCard(${i.id})">كارت الصنف</button>
+                  <button class="btn" style="padding:3px 8px;" onclick="openItemModal(${i.id})">تعديل</button>
+                  <button class="btn danger" style="padding:3px 8px;" onclick="deleteItem(${i.id})">حذف</button>
                 </td>
               </tr>
-            `).join('') || '<tr><td colspan=5 class="empty">ظ„ط§ طھظˆط¬ط¯ ط£طµظ†ط§ظپ ظ…ط¹ط±ظپط©</td></tr>'}
+            `).join('') || '<tr><td colspan=5 class="empty">لا توجد أصناف معرفة</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -371,11 +371,11 @@ function renderInventory(root) {
 }
 
 function openItemModal(id = null) {
-  const item = id ? DB.items.find(x => x.id === id) : { code: 'IT' + uid(), name: '', unit: 'ظ‚ط·ط¹ط©' };
-  openModal(id ? 'طھط¹ط¯ظٹظ„ طµظ†ظپ' : 'ط¥ط¶ط§ظپط© طµظ†ظپ ط¬ط¯ظٹط¯', `
-    <div class="field" style="margin-bottom:10px;"><label>ظƒظˆط¯ ط§ظ„طµظ†ظپ</label><input id="mCode" value="${item.code}"></div>
-    <div class="field" style="margin-bottom:10px;"><label>ط§ط³ظ… ط§ظ„طµظ†ظپ</label><input id="mName" value="${item.name}"></div>
-    <div class="field"><label>ط§ظ„ظˆط­ط¯ط©</label><input id="mUnit" value="${item.unit}"></div>
+  const item = id ? DB.items.find(x => x.id === id) : { code: 'IT' + uid(), name: '', unit: 'قطعة' };
+  openModal(id ? 'تعديل صنف' : 'إضافة صنف جديد', `
+    <div class="field" style="margin-bottom:10px;"><label>كود الصنف</label><input id="mCode" value="${item.code}"></div>
+    <div class="field" style="margin-bottom:10px;"><label>اسم الصنف</label><input id="mName" value="${item.name}"></div>
+    <div class="field"><label>الوحدة</label><input id="mUnit" value="${item.unit}"></div>
   `, () => saveItem(id));
 }
 
@@ -383,7 +383,7 @@ function saveItem(id) {
   const code = document.getElementById('mCode').value.trim();
   const name = document.getElementById('mName').value.trim();
   const unit = document.getElementById('mUnit').value.trim();
-  if(!name) { toast('ظٹط±ط¬ظ‰ ط¥ط¯ط®ط§ظ„ ط§ط³ظ… ط§ظ„طµظ†ظپ'); return; }
+  if(!name) { toast('يرجى إدخال اسم الصنف'); return; }
 
   if(id) {
     const it = DB.items.find(x => x.id === id);
@@ -393,19 +393,19 @@ function saveItem(id) {
   }
 
   saveDB();
-  logAudit(id ? 'طھط¹ط¯ظٹظ„' : 'ط¥ط¶ط§ظپط©', 'inventory', 'طµظ†ظپ: ' + name);
+  logAudit(id ? 'تعديل' : 'إضافة', 'inventory', 'صنف: ' + name);
   closeModal();
   renderAll();
-  toast('طھظ… ط§ظ„ط­ظپط¸ ط¨ظ†ط¬ط§ط­');
+  toast('تم الحفظ بنجاح');
 }
 
 function deleteItem(id) {
   if (!requirePerm('inventory', 'delete')) return;
-  if (!confirm('طھط£ظƒظٹط¯ ط­ط°ظپ ط§ظ„طµظ†ظپطں')) return;
+  if (!confirm('تأكيد حذف الصنف؟')) return;
   DB.items = DB.items.filter(x => x.id !== id);
   saveDB();
   renderAll();
-  toast('طھظ… ط§ظ„ط­ط°ظپ');
+  toast('تم الحذف');
 }
 
 function openItemCard(id) {
@@ -414,35 +414,35 @@ function openItemCard(id) {
   const ops = DB.stockOps.filter(o => o.itemId === id);
   const batches = DB.stockBatches.filter(b => b.itemId === id && b.remaining > 0.0001);
   
-  openModal('ظƒط§ط±طھ ط§ظ„طµظ†ظپ: ' + it.name + ' (' + it.code + ')', `
-    <h3>ط§ظ„ط¯ظپط¹ط© ط§ظ„ط­ط§ظ„ظٹط© ط§ظ„ظ…طھظˆظپط±ط© (FIFO)</h3>
+  openModal('كارت الصنف: ' + it.name + ' (' + it.code + ')', `
+    <h3>الدفعة الحالية المتوفرة (FIFO)</h3>
     <div class="tableWrap">
       <table>
-        <thead><tr><th>ط§ظ„ظ…ط®ط²ظ†</th><th>ط§ظ„ظƒظ…ظٹط© ط§ظ„ظ…طھط¨ظ‚ظٹط©</th><th>طھظƒظ„ظپط© ط§ظ„ظˆط­ط¯ط©</th><th>ط§ظ„طھط§ط±ظٹط®</th></tr></thead>
+        <thead><tr><th>المخزن</th><th>الكمية المتبقية</th><th>تكلفة الوحدة</th><th>التاريخ</th></tr></thead>
         <tbody>
           ${batches.map(b => {
             const wh = DB.warehouses.find(w => w.id == b.warehouseId);
             return `<tr><td>${wh ? wh.name : '-'}</td><td>${fmt(b.remaining)}</td><td>${fmt(b.unitCost)}</td><td>${b.date}</td></tr>`;
-          }).join('') || '<tr><td colspan=4 class="empty">ظ„ط§ ظٹظˆط¬ط¯ ط±طµظٹط¯ ظ…طھط¨ظ‚ظچ</td></tr>'}
+          }).join('') || '<tr><td colspan=4 class="empty">لا يوجد رصيد متبقٍ</td></tr>'}
         </tbody>
       </table>
     </div>
-    <h3 style="margin-top:16px;">ط³ط¬ظ„ ط§ظ„ط­ط±ظƒط§طھ</h3>
+    <h3 style="margin-top:16px;">سجل الحركات</h3>
     <div class="tableWrap">
       <table>
-        <thead><tr><th>ط§ظ„طھط§ط±ظٹط®</th><th>ط§ظ„ظ…ط®ط²ظ†</th><th>ظ†ظˆط¹ ط§ظ„ط­ط±ظƒط©</th><th>ظˆط§ط±ط¯</th><th>ظ…ظ†طµط±ظپ</th><th>ط§ظ„ظ…ط±ط¬ط¹</th></tr></thead>
+        <thead><tr><th>التاريخ</th><th>المخزن</th><th>نوع الحركة</th><th>وارد</th><th>منصرف</th><th>المرجع</th></tr></thead>
         <tbody>
           ${ops.map(o => {
             const wh = DB.warehouses.find(w => w.id == o.warehouseId);
             return `<tr><td>${o.date}</td><td>${wh ? wh.name : '-'}</td><td>${o.type}</td><td>${o.inQty ? fmt(o.inQty) : ''}</td><td>${o.outQty ? fmt(o.outQty) : ''}</td><td>${o.ref || '-'}</td></tr>`;
-          }).join('') || '<tr><td colspan=6 class="empty">ظ„ط§ طھظˆط¬ط¯ ط­ط±ظƒط§طھ ط³ط§ط¨ظ‚ط©</td></tr>'}
+          }).join('') || '<tr><td colspan=6 class="empty">لا توجد حركات سابقة</td></tr>'}
         </tbody>
       </table>
     </div>
   `, null, true);
 }
 
-/* ---------- 7. ط­ط±ظƒط© ط§ظ„ظ…ط®ط²ظˆظ† (ط§ط³طھظ„ط§ظ… / طµط±ظپ / طھط­ظˆظٹظ„) ---------- */
+/* ---------- 7. حركة المخزون (استلام / صرف / تحويل) ---------- */
 function logStockOp(itemId, warehouseId, type, inQty, outQty, date, ref) {
   DB.stockOps.push({ 
     id: uid(), 
@@ -460,16 +460,16 @@ function logStockOp(itemId, warehouseId, type, inQty, outQty, date, ref) {
 function renderStockReceive(root) {
   root.innerHTML = `
     <div class="card">
-      <div class="cardHead"><h2>ط¥ط°ظ† ط§ط³طھظ„ط§ظ… ظ…ط®ط²ظ†ظٹ (ظˆط§ط±ط¯)</h2></div>
+      <div class="cardHead"><h2>إذن استلام مخزني (وارد)</h2></div>
       <div class="grid3">
-        <div class="field"><label>ط§ظ„طµظ†ظپ</label><select id="srItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
-        <div class="field"><label>ط§ظ„ظ…ط®ط²ظ†</label><select id="srWh">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
-        <div class="field"><label>ط§ظ„ظƒظ…ظٹط©</label><input type="number" id="srQty" value="1"></div>
-        <div class="field"><label>طھظƒظ„ظپط© ط§ظ„ظˆط­ط¯ط©</label><input type="number" id="srCost" value="0"></div>
-        <div class="field"><label>ط§ظ„طھط§ط±ظٹط®</label><input type="date" id="srDate" value="${todayStr()}"></div>
-        <div class="field"><label>ظ…ظ„ط§ط­ط¸ط§طھ / ظ…ط±ط¬ط¹</label><input id="srRef"></div>
+        <div class="field"><label>الصنف</label><select id="srItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
+        <div class="field"><label>المخزن</label><select id="srWh">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
+        <div class="field"><label>الكمية</label><input type="number" id="srQty" value="1"></div>
+        <div class="field"><label>تكلفة الوحدة</label><input type="number" id="srCost" value="0"></div>
+        <div class="field"><label>التاريخ</label><input type="date" id="srDate" value="${todayStr()}"></div>
+        <div class="field"><label>ملاحظات / مرجع</label><input id="srRef"></div>
       </div>
-      <button class="btn" style="margin-top:12px;" onclick="saveStockReceive()">ط­ظپط¸ ط¥ط°ظ† ط§ظ„ط§ط³طھظ„ط§ظ…</button>
+      <button class="btn" style="margin-top:12px;" onclick="saveStockReceive()">حفظ إذن الاستلام</button>
     </div>
   `;
 }
@@ -482,26 +482,26 @@ function saveStockReceive() {
   const date = document.getElementById('srDate').value;
   const ref = document.getElementById('srRef').value;
 
-  if(!itemId || qty <= 0) { toast('ظٹط±ط¬ظ‰ ظ…ظ„ط، ط§ظ„ط¨ظٹط§ظ†ط§طھ ط¨ط§ظ„ط´ظƒظ„ ط§ظ„طµط­ظٹط­'); return; }
+  if(!itemId || qty <= 0) { toast('يرجى ملء البيانات بالشكل الصحيح'); return; }
 
   addStockBatch(itemId, whId, qty, cost, date, 'manual_in', null);
-  logStockOp(itemId, whId, 'ط¥ط°ظ† ط§ط³طھظ„ط§ظ…', qty, 0, date, ref || 'ط¥ط°ظ† ط§ط³طھظ„ط§ظ… ظٹط¯ظˆظٹ');
-  toast('طھظ… ط¥ط¶ط§ظپط© ط§ظ„ط´ط­ظ†ط© ط¨ظ†ط¬ط§ط­');
+  logStockOp(itemId, whId, 'إذن استلام', qty, 0, date, ref || 'إذن استلام يدوي');
+  toast('تم إضافة الشحنة بنجاح');
   renderAll();
 }
 
 function renderStockIssue(root) {
   root.innerHTML = `
     <div class="card">
-      <div class="cardHead"><h2>ط¥ط°ظ† طµط±ظپ ظ…ط®ط²ظ†ظٹ (ظ…ظ†طµط±ظپ)</h2></div>
+      <div class="cardHead"><h2>إذن صرف مخزني (منصرف)</h2></div>
       <div class="grid3">
-        <div class="field"><label>ط§ظ„طµظ†ظپ</label><select id="siItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
-        <div class="field"><label>ط§ظ„ظ…ط®ط²ظ†</label><select id="siWh">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
-        <div class="field"><label>ط§ظ„ظƒظ…ظٹط©</label><input type="number" id="siQty" value="1"></div>
-        <div class="field"><label>ط§ظ„طھط§ط±ظٹط®</label><input type="date" id="siDate" value="${todayStr()}"></div>
-        <div class="field"><label>ظ…ظ„ط§ط­ط¸ط§طھ / ظ…ط±ط¬ط¹</label><input id="siRef"></div>
+        <div class="field"><label>الصنف</label><select id="siItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
+        <div class="field"><label>المخزن</label><select id="siWh">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
+        <div class="field"><label>الكمية</label><input type="number" id="siQty" value="1"></div>
+        <div class="field"><label>التاريخ</label><input type="date" id="siDate" value="${todayStr()}"></div>
+        <div class="field"><label>ملاحظات / مرجع</label><input id="siRef"></div>
       </div>
-      <button class="btn" style="margin-top:12px;" onclick="saveStockIssue()">ط­ظپط¸ ط¥ط°ظ† ط§ظ„طµط±ظپ</button>
+      <button class="btn" style="margin-top:12px;" onclick="saveStockIssue()">حفظ إذن الصرف</button>
     </div>
   `;
 }
@@ -514,26 +514,26 @@ function saveStockIssue() {
   const ref = document.getElementById('siRef').value;
 
   const avail = getItemStock(itemId, whId);
-  if (qty > avail) { alert('ط§ظ„ظƒظ…ظٹط© ط§ظ„ظ…طھط§ط­ط© ظ„ط§ طھظƒظپظٹ! ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھط§ط­: ' + avail); return; }
+  if (qty > avail) { alert('الكمية المتاحة لا تكفي! الرصيد المتاح: ' + avail); return; }
 
   consumeStockFIFO(itemId, whId, qty, true);
-  logStockOp(itemId, whId, 'ط¥ط°ظ† طµط±ظپ', 0, qty, date, ref || 'ط¥ط°ظ† طµط±ظپ ظٹط¯ظˆظٹ');
-  toast('طھظ… طµط±ظپ ط§ظ„ظƒظ…ظٹط© ط¨ظ†ط¬ط§ط­');
+  logStockOp(itemId, whId, 'إذن صرف', 0, qty, date, ref || 'إذن صرف يدوي');
+  toast('تم صرف الكمية بنجاح');
   renderAll();
 }
 
 function renderStockTransfer(root) {
   root.innerHTML = `
     <div class="card">
-      <div class="cardHead"><h2>طھط­ظˆظٹظ„ ط¨ظٹظ† ط§ظ„ظ…ط®ط§ط²ظ†</h2></div>
+      <div class="cardHead"><h2>تحويل بين المخازن</h2></div>
       <div class="grid3">
-        <div class="field"><label>ط§ظ„طµظ†ظپ</label><select id="stItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
-        <div class="field"><label>ظ…ظ† ظ…ط®ط²ظ†</label><select id="stFrom">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
-        <div class="field"><label>ط¥ظ„ظ‰ ظ…ط®ط²ظ†</label><select id="stTo">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
-        <div class="field"><label>ط§ظ„ظƒظ…ظٹط©</label><input type="number" id="stQty" value="1"></div>
-        <div class="field"><label>ط§ظ„طھط§ط±ظٹط®</label><input type="date" id="stDate" value="${todayStr()}"></div>
+        <div class="field"><label>الصنف</label><select id="stItem">${DB.items.map(i => `<option value="${i.id}">${i.name} (${i.code})</option>`).join('')}</select></div>
+        <div class="field"><label>من مخزن</label><select id="stFrom">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
+        <div class="field"><label>إلى مخزن</label><select id="stTo">${DB.warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}</select></div>
+        <div class="field"><label>الكمية</label><input type="number" id="stQty" value="1"></div>
+        <div class="field"><label>التاريخ</label><input type="date" id="stDate" value="${todayStr()}"></div>
       </div>
-      <button class="btn" style="margin-top:12px;" onclick="saveStockTransfer()">طھط£ظƒظٹط¯ ط§ظ„طھط­ظˆظٹظ„</button>
+      <button class="btn" style="margin-top:12px;" onclick="saveStockTransfer()">تأكيد التحويل</button>
     </div>
   `;
 }
@@ -545,37 +545,37 @@ function saveStockTransfer() {
   const qty = Number(document.getElementById('stQty').value || 0);
   const date = document.getElementById('stDate').value;
 
-  if (fromWh === toWh) { toast('ط§ظ„ط±ط¬ط§ط، ط§ط®طھظٹط§ط± ظ…ط®ط²ظ†ظٹظ† ظ…ط®طھظ„ظپظٹظ†'); return; }
+  if (fromWh === toWh) { toast('الرجاء اختيار مخزنين مختلفين'); return; }
 
   const res = consumeStockFIFO(itemId, fromWh, qty, false);
-  if (!res) { alert('ط§ظ„ط±طµظٹط¯ ظپظٹ ط§ظ„ظ…ط®ط²ظ† ط§ظ„ظ…طµط¯ط± ظ„ط§ ظٹظƒظپظٹ!'); return; }
+  if (!res) { alert('الرصيد في المخزن المصدر لا يكفي!'); return; }
 
   consumeStockFIFO(itemId, fromWh, qty, true);
   const avgCost = res.cost / qty;
   addStockBatch(itemId, toWh, qty, avgCost, date, 'transfer', null);
 
-  logStockOp(itemId, fromWh, 'طھط­ظˆظٹظ„ (ظ…ظ†طµط±ظپ)', 0, qty, date, 'طھط­ظˆظٹظ„ ظ„ظ…ط®ط²ظ† ط¢ط®ط±');
-  logStockOp(itemId, toWh, 'طھط­ظˆظٹظ„ (ظˆط§ط±ط¯)', qty, 0, date, 'طھط­ظˆظٹظ„ ظ…ظ† ظ…ط®ط²ظ† ط¢ط®ط±');
+  logStockOp(itemId, fromWh, 'تحويل (منصرف)', 0, qty, date, 'تحويل لمخزن آخر');
+  logStockOp(itemId, toWh, 'تحويل (وارد)', qty, 0, date, 'تحويل من مخزن آخر');
 
-  toast('طھظ… ط§ظ„طھط­ظˆظٹظ„ ط¨ظٹظ† ط§ظ„ظ…ط®ط²ظ†ظٹظ† ط¨ظ†ط¬ط§ط­');
+  toast('تم التحويل بين المخزنين بنجاح');
   renderAll();
 }
 
 function renderStockOps(root) {
   root.innerHTML = `
     <div class="card">
-      <div class="cardHead"><h2>ط³ط¬ظ„ ط¹ظ…ظ„ظٹط§طھ ظˆط­ط±ظƒط§طھ ط§ظ„ظ…ط®ط²ظˆظ†</h2></div>
+      <div class="cardHead"><h2>سجل عمليات وحركات المخزون</h2></div>
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>ط§ظ„طھط§ط±ظٹط®</th><th>ط§ظ„طµظ†ظپ</th><th>ط§ظ„ظ…ط®ط²ظ†</th><th>ظ†ظˆط¹ ط§ظ„ط­ط±ظƒط©</th><th>ظˆط§ط±ط¯</th><th>ظ…ظ†طµط±ظپ</th><th>ط§ظ„ظ…ط±ط¬ط¹</th></tr>
+            <tr><th>التاريخ</th><th>الصنف</th><th>المخزن</th><th>نوع الحركة</th><th>وارد</th><th>منصرف</th><th>المرجع</th></tr>
           </thead>
           <tbody>
             ${DB.stockOps.slice().reverse().map(o => {
               const it = DB.items.find(i => i.id === o.itemId);
               const wh = DB.warehouses.find(w => w.id === o.warehouseId);
               return `<tr><td>${o.date}</td><td>${it ? it.name : '-'}</td><td>${wh ? wh.name : '-'}</td><td>${o.type}</td><td>${o.inQty ? fmt(o.inQty) : ''}</td><td>${o.outQty ? fmt(o.outQty) : ''}</td><td>${o.ref || '-'}</td></tr>`;
-            }).join('') || '<tr><td colspan=7 class="empty">ظ„ط§ طھظˆط¬ط¯ ط­ط±ظƒط§طھ ظ…ط³ط¬ظ„ط©</td></tr>'}
+            }).join('') || '<tr><td colspan=7 class="empty">لا توجد حركات مسجلة</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -583,38 +583,38 @@ function renderStockOps(root) {
   `;
 }
 
-/* ---------- 8. ط§ط³طھظٹط±ط§ط¯ ظˆطھطµط¯ظٹط± Excel ---------- */
+/* ---------- 8. استيراد وتصدير Excel ---------- */
 function renderInvImportExport(root) {
   root.innerHTML = `
     <div class="card">
-      <div class="cardHead"><h2>ط§ط³طھظٹط±ط§ط¯ / طھطµط¯ظٹط± ط§ظ„ط£طµظ†ط§ظپ ط¹ط¨ط± ظ…ظ„ظپط§طھ Excel</h2></div>
-      <p style="margin-bottom:12px; font-size:14px; color:#64748b;">ظٹظ…ظƒظ†ظƒ طھطµط¯ظٹط± ظ‚ط§ط¹ط¯ط© ط§ظ„ط£طµظ†ط§ظپ ط§ظ„ط­ط§ظ„ظٹط© ظƒظ…ظ„ظپ Excel ط£ظˆ ط±ظپط¹ ظ…ظ„ظپ ظ„ظ„طھط­ظ…ظٹظ„ طھظ„ظ‚ط§ط¦ظٹط§ظ‹.</p>
-      <button class="btn" onclick="exportItemsToExcel()">طھطµط¯ظٹط± ط§ظ„ط£طµظ†ط§ظپ ط¥ظ„ظ‰ Excel</button>
+      <div class="cardHead"><h2>استيراد / تصدير الأصناف عبر ملفات Excel</h2></div>
+      <p style="margin-bottom:12px; font-size:14px; color:#64748b;">يمكنك تصدير قاعدة الأصناف الحالية كملف Excel أو رفع ملف للتحميل تلقائياً.</p>
+      <button class="btn" onclick="exportItemsToExcel()">تصدير الأصناف إلى Excel</button>
     </div>
   `;
 }
 
 function exportItemsToExcel() {
-  if (typeof XLSX === 'undefined') { toast('ظ…ظƒطھط¨ط© Excel ط؛ظٹط± ظ…ط«ط¨طھط© ط£ظˆ ط؛ظٹط± ظ…ط­ظ…ظ„ط©'); return; }
+  if (typeof XLSX === 'undefined') { toast('مكتبة Excel غير مثبتة أو غير محملة'); return; }
   const rows = DB.items.map(i => ({ 
-    'ظƒظˆط¯ ط§ظ„طµظ†ظپ': i.code, 
-    'ط§ط³ظ… ط§ظ„طµظ†ظپ': i.name, 
-    'ط§ظ„ظˆط­ط¯ط©': i.unit, 
-    'ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ…ط®ط²ظˆظ† ط§ظ„ظ…طھط§ط­': getItemStock(i.id) 
+    'كود الصنف': i.code, 
+    'اسم الصنف': i.name, 
+    'الوحدة': i.unit, 
+    'إجمالي المخزون المتاح': getItemStock(i.id) 
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ط§ظ„ط£طµظ†ط§ظپ');
+  XLSX.utils.book_append_sheet(wb, ws, 'الأصناف');
   XLSX.writeFile(wb, 'Items_List.xlsx');
 }
 
 /* =========================================================
-   ط§ظ„ط¬ط²ط، ط§ظ„ط«ط§ظ„ط«: ط§ظ„ظپظˆط§طھظٹط± ظˆط§ظ„ظ…ط¨ظٹط¹ط§طھ (Sales Invoices)
-   ظٹط³طھط®ط¯ظ… ظ†ظپط³ ظ†ظ…ط· addStockBatch/consumeStockFIFO ط§ظ„ظ…ظˆط¬ظˆط¯ ط¨ط§ظ„ط£ط¹ظ„ظ‰طŒ
-   ظˆظٹط±ط¨ط· ظƒظ„ ظپط§طھظˆط±ط© ط¨ظ‚ظٹط¯ ظٹظˆظ…ظٹط© ظ…ط²ط¯ظˆط¬ ط¹ظ„ظ‰ ط´ط¬ط±ط© ط§ظ„ط­ط³ط§ط¨ط§طھ.
+   الجزء الثالث: الفواتير والمبيعات (Sales Invoices)
+   يستخدم نفس نمط addStockBatch/consumeStockFIFO الموجود بالأعلى،
+   ويربط كل فاتورة بقيد يومية مزدوج على شجرة الحسابات.
    ========================================================= */
 
-/* ---------- 9. ط§ظ„ظپظˆط§طھظٹط± - ط§ظ„ظ…ط¨ظٹط¹ط§طھ ---------- */
+/* ---------- 9. الفواتير - المبيعات ---------- */
 function findAccountByCode(code) { return DB.accounts.find(a => a.code === code); }
 
 let _invDraftLines = [];
@@ -623,13 +623,13 @@ function renderInvoices(root) {
   root.innerHTML = `
     <div class="card">
       <div class="cardHead" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>ظپظˆط§طھظٹط± ط§ظ„ظ…ط¨ظٹط¹ط§طھ</h2>
-        <button class="btn" onclick="openSalesInvoiceModal()">+ ظپط§طھظˆط±ط© ط¨ظٹط¹ ط¬ط¯ظٹط¯ط©</button>
+        <h2>فواتير المبيعات</h2>
+        <button class="btn" onclick="openSalesInvoiceModal()">+ فاتورة بيع جديدة</button>
       </div>
       <div class="tableWrap">
         <table>
           <thead>
-            <tr><th>ط±ظ‚ظ… ط§ظ„ظپط§طھظˆط±ط©</th><th>ط§ظ„طھط§ط±ظٹط®</th><th>ط§ظ„ط¹ظ…ظٹظ„</th><th>ظ†ظˆط¹ ط§ظ„ط¯ظپط¹</th><th>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</th><th>ط¥ط¬ط±ط§ط،ط§طھ</th></tr>
+            <tr><th>رقم الفاتورة</th><th>التاريخ</th><th>العميل</th><th>نوع الدفع</th><th>الإجمالي</th><th>إجراءات</th></tr>
           </thead>
           <tbody>
             ${DB.invoices.slice().reverse().map(inv => {
@@ -638,11 +638,11 @@ function renderInvoices(root) {
                 <td>${inv.number}</td>
                 <td>${inv.date}</td>
                 <td>${cust ? cust.name : '-'}</td>
-                <td>${inv.paymentType === 'cash' ? 'ظ†ظ‚ط¯ظٹ' : 'ط¢ط¬ظ„'}</td>
+                <td>${inv.paymentType === 'cash' ? 'نقدي' : 'آجل'}</td>
                 <td>${fmt(inv.total)}</td>
-                <td><button class="btn secondary" style="padding:3px 8px;" onclick="viewInvoice('${inv.id}')">ط¹ط±ط¶</button></td>
+                <td><button class="btn secondary" style="padding:3px 8px;" onclick="viewInvoice('${inv.id}')">عرض</button></td>
               </tr>`;
-            }).join('') || '<tr><td colspan=6 class="empty">ظ„ط§ طھظˆط¬ط¯ ظپظˆط§طھظٹط± ظ…ط³ط¬ظ„ط©</td></tr>'}
+            }).join('') || '<tr><td colspan=6 class="empty">لا توجد فواتير مسجلة</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -658,28 +658,28 @@ function openSalesInvoiceModal() {
   }];
 
   const customerOptions = DB.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')
-    || '<option value="">ظ„ط§ ظٹظˆط¬ط¯ ط¹ظ…ظ„ط§ط، ط¨ط¹ط¯</option>';
+    || '<option value="">لا يوجد عملاء بعد</option>';
 
-  openModal('ظپط§طھظˆط±ط© ط¨ظٹط¹ ط¬ط¯ظٹط¯ط©', `
+  openModal('فاتورة بيع جديدة', `
     <div class="grid3" style="margin-bottom:12px;">
       <div class="field">
-        <label>ط§ظ„ط¹ظ…ظٹظ„</label>
+        <label>العميل</label>
         <div style="display:flex; gap:6px;">
           <select id="invCustomer" style="flex:1;">${customerOptions}</select>
-          <button class="btn secondary" type="button" style="padding:6px 10px;" onclick="quickAddCustomer()">+ ط¬ط¯ظٹط¯</button>
+          <button class="btn secondary" type="button" style="padding:6px 10px;" onclick="quickAddCustomer()">+ جديد</button>
         </div>
       </div>
-      <div class="field"><label>ط§ظ„طھط§ط±ظٹط®</label><input type="date" id="invDate" value="${todayStr()}"></div>
-      <div class="field"><label>ظ†ظˆط¹ ط§ظ„ط¯ظپط¹</label>
+      <div class="field"><label>التاريخ</label><input type="date" id="invDate" value="${todayStr()}"></div>
+      <div class="field"><label>نوع الدفع</label>
         <select id="invPayType">
-          <option value="cash">ظ†ظ‚ط¯ظٹ</option>
-          <option value="credit">ط¢ط¬ظ„ (ط¹ظ„ظ‰ ط§ظ„ط­ط³ط§ط¨)</option>
+          <option value="cash">نقدي</option>
+          <option value="credit">آجل (على الحساب)</option>
         </select>
       </div>
     </div>
     <div id="invLinesWrap"></div>
-    <button class="btn secondary" type="button" style="margin-top:8px;" onclick="addInvoiceLineRow()">+ ط¥ط¶ط§ظپط© طµظ†ظپ</button>
-    <div style="margin-top:14px; text-align:left; font-size:16px;"><b>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ: <span id="invTotalLabel">0.00</span></b></div>
+    <button class="btn secondary" type="button" style="margin-top:8px;" onclick="addInvoiceLineRow()">+ إضافة صنف</button>
+    <div style="margin-top:14px; text-align:left; font-size:16px;"><b>الإجمالي: <span id="invTotalLabel">0.00</span></b></div>
   `, () => saveSalesInvoice());
 
   renderInvoiceLinesTable();
@@ -691,7 +691,7 @@ function renderInvoiceLinesTable() {
   wrap.innerHTML = `
     <div class="tableWrap">
       <table>
-        <thead><tr><th>ط§ظ„طµظ†ظپ</th><th>ط§ظ„ظ…ط®ط²ظ†</th><th>ط§ظ„ظƒظ…ظٹط©</th><th>ط§ظ„ط³ط¹ط±</th><th>ط§ظ„ط±طµظٹط¯ ط§ظ„ظ…طھط§ط­</th><th>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</th><th></th></tr></thead>
+        <thead><tr><th>الصنف</th><th>المخزن</th><th>الكمية</th><th>السعر</th><th>الرصيد المتاح</th><th>الإجمالي</th><th></th></tr></thead>
         <tbody>
           ${_invDraftLines.map((ln, idx) => {
             const avail = ln.itemId && ln.warehouseId ? getItemStock(Number(ln.itemId), Number(ln.warehouseId)) : 0;
@@ -707,7 +707,7 @@ function renderInvoiceLinesTable() {
               <td><input type="number" min="0" value="${ln.price}" style="width:80px;" onchange="updateInvoiceLine(${idx},'price',this.value)"></td>
               <td>${fmt(avail)}</td>
               <td>${fmt(lineTotal)}</td>
-              <td>${_invDraftLines.length > 1 ? `<button class="btn danger" style="padding:2px 8px;" onclick="removeInvoiceLineRow(${idx})">ط­ط°ظپ</button>` : ''}</td>
+              <td>${_invDraftLines.length > 1 ? `<button class="btn danger" style="padding:2px 8px;" onclick="removeInvoiceLineRow(${idx})">حذف</button>` : ''}</td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -743,11 +743,11 @@ function removeInvoiceLineRow(idx) {
 }
 
 function quickAddCustomer() {
-  const name = prompt('ط§ط³ظ… ط§ظ„ط¹ظ…ظٹظ„ ط§ظ„ط¬ط¯ظٹط¯:');
+  const name = prompt('اسم العميل الجديد:');
   if (!name) return;
   DB.customers.push({ id: uid(), name, balance: 0 });
   saveDB();
-  openSalesInvoiceModal(); // ط¥ط¹ط§ط¯ط© ظپطھط­ ط§ظ„ظ†ظ…ظˆط°ط¬ ظ…ط¹ طھط­ط¯ظٹط« ظ‚ط§ط¦ظ…ط© ط§ظ„ط¹ظ…ظ„ط§ط،
+  openSalesInvoiceModal(); // إعادة فتح النموذج مع تحديث قائمة العملاء
 }
 
 function saveSalesInvoice() {
@@ -755,17 +755,17 @@ function saveSalesInvoice() {
   const date = document.getElementById('invDate').value || todayStr();
   const paymentType = document.getElementById('invPayType').value;
 
-  if (!customerId) { toast('ظٹط±ط¬ظ‰ ط§ط®طھظٹط§ط± ط§ظ„ط¹ظ…ظٹظ„ (ط£ظˆ ط¥ط¶ط§ظپط© ط¹ظ…ظٹظ„ ط¬ط¯ظٹط¯ ط£ظˆظ„ط§ظ‹)'); return; }
-  if (!_invDraftLines.length) { toast('ط£ط¶ظپ طµظ†ظپظ‹ط§ ظˆط§ط­ط¯ظ‹ط§ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„'); return; }
+  if (!customerId) { toast('يرجى اختيار العميل (أو إضافة عميل جديد أولاً)'); return; }
+  if (!_invDraftLines.length) { toast('أضف صنفًا واحدًا على الأقل'); return; }
 
-  // طھط­ظ‚ظ‚ ظ…ظ† طھظˆظپط± ط§ظ„ط±طµظٹط¯ ظ„ظƒظ„ ط§ظ„ط£طµظ†ط§ظپ ظ‚ط¨ظ„ طھظ†ظپظٹط° ط£ظٹ ط¹ظ…ظ„ظٹط© طµط±ظپ ظپط¹ظ„ظٹط©
+  // تحقق من توفر الرصيد لكل الأصناف قبل تنفيذ أي عملية صرف فعلية
   for (const ln of _invDraftLines) {
     const itemId = Number(ln.itemId), whId = Number(ln.warehouseId), qty = Number(ln.qty);
-    if (!itemId || !whId || qty <= 0) { toast('ظٹط±ط¬ظ‰ ط§ط³طھظƒظ…ط§ظ„ ط¨ظٹط§ظ†ط§طھ ظƒظ„ ط§ظ„ط£طµظ†ط§ظپ ط¨ط´ظƒظ„ طµط­ظٹط­'); return; }
+    if (!itemId || !whId || qty <= 0) { toast('يرجى استكمال بيانات كل الأصناف بشكل صحيح'); return; }
     const avail = getItemStock(itemId, whId);
     if (qty > avail) {
       const item = DB.items.find(i => i.id === itemId);
-      toast(`ط§ظ„ط±طµظٹط¯ ط؛ظٹط± ظƒط§ظپظچ ظ„ظ„طµظ†ظپ "${item ? item.name : itemId}" â€” ط§ظ„ظ…طھط§ط­: ${fmt(avail)}`);
+      toast(`الرصيد غير كافٍ للصنف "${item ? item.name : itemId}" — المتاح: ${fmt(avail)}`);
       return;
     }
   }
@@ -779,7 +779,7 @@ function saveSalesInvoice() {
     total += qty * price;
     totalCost += lineCost;
     savedLines.push({ itemId, warehouseId: whId, qty, price, cost: lineCost });
-    logStockOp(itemId, whId, 'ظپط§طھظˆط±ط© ط¨ظٹط¹', 0, qty, date, 'ظپط§طھظˆط±ط© ط¨ظٹط¹');
+    logStockOp(itemId, whId, 'فاتورة بيع', 0, qty, date, 'فاتورة بيع');
   }
 
   const invoice = {
@@ -792,7 +792,7 @@ function saveSalesInvoice() {
   };
   DB.invoices.push(invoice);
 
-  // طھط­ط¯ظٹط« ط±طµظٹط¯ ط§ظ„ط¹ظ…ظٹظ„ ظپظٹ ط­ط§ظ„ط© ط§ظ„ط¨ظٹط¹ ط§ظ„ط¢ط¬ظ„ (ط¹ظ„ظ‰ ط§ظ„ط­ط³ط§ط¨)
+  // تحديث رصيد العميل في حالة البيع الآجل (على الحساب)
   if (paymentType === 'credit') {
     const cust = DB.customers.find(c => c.id === customerId);
     if (cust) cust.balance = Number(cust.balance || 0) + total;
@@ -801,10 +801,10 @@ function saveSalesInvoice() {
   postInvoiceJournal(invoice);
 
   saveDB();
-  logAudit('ط¥ط¶ط§ظپط©', 'invoices', 'ظپط§طھظˆط±ط© ط¨ظٹط¹ ط±ظ‚ظ…: ' + invoice.number);
+  logAudit('إضافة', 'invoices', 'فاتورة بيع رقم: ' + invoice.number);
   closeModal();
   renderInvoices(document.getElementById('content'));
-  toast('طھظ… ط­ظپط¸ ط§ظ„ظپط§طھظˆط±ط© ط±ظ‚ظ… ' + invoice.number);
+  toast('تم حفظ الفاتورة رقم ' + invoice.number);
 }
 
 function postInvoiceJournal(invoice) {
@@ -815,20 +815,20 @@ function postInvoiceJournal(invoice) {
   const invAcc = findAccountByCode('114');
   const debitAcc = invoice.paymentType === 'cash' ? cashAcc : custAcc;
 
-  // ظ‚ظٹط¯ ط§ظ„ط¥ظٹط±ط§ط¯: ظ…ظ† ط­/ ط§ظ„ط®ط²ظٹظ†ط© (ظ†ظ‚ط¯ظٹ) ط£ظˆ ط§ظ„ط¹ظ…ظ„ط§ط، (ط¢ط¬ظ„) - ط¥ظ„ظ‰ ط­/ ظ…ط¨ظٹط¹ط§طھ ط§ظ„ط¨ط¶ط§ط¦ط¹
+  // قيد الإيراد: من ح/ الخزينة (نقدي) أو العملاء (آجل) - إلى ح/ مبيعات البضائع
   DB.journalEntries.push({
     id: uid(), date: invoice.date,
-    memo: 'ظپط§طھظˆط±ط© ط¨ظٹط¹ ط±ظ‚ظ… ' + invoice.number,
+    memo: 'فاتورة بيع رقم ' + invoice.number,
     debitAccountId: debitAcc ? debitAcc.id : null,
     creditAccountId: salesAcc ? salesAcc.id : null,
     amount: invoice.total
   });
 
-  // ظ‚ظٹط¯ طھظƒظ„ظپط© ط§ظ„ط¨ط¶ط§ط¹ط© ط§ظ„ظ…ط¨ط§ط¹ط©: ظ…ظ† ط­/ طھظƒظ„ظپط© ط§ظ„ط¨ط¶ط§ط¹ط© ط§ظ„ظ…ط¨ط§ط¹ط© - ط¥ظ„ظ‰ ط­/ ط§ظ„ظ…ط®ط²ظˆظ†
+  // قيد تكلفة البضاعة المباعة: من ح/ تكلفة البضاعة المباعة - إلى ح/ المخزون
   if (invoice.totalCost > 0) {
     DB.journalEntries.push({
       id: uid(), date: invoice.date,
-      memo: 'طھظƒظ„ظپط© ط¨ط¶ط§ط¹ط© ظپط§طھظˆط±ط© ط¨ظٹط¹ ط±ظ‚ظ… ' + invoice.number,
+      memo: 'تكلفة بضاعة فاتورة بيع رقم ' + invoice.number,
       debitAccountId: cogsAcc ? cogsAcc.id : null,
       creditAccountId: invAcc ? invAcc.id : null,
       amount: invoice.totalCost
@@ -840,11 +840,11 @@ function viewInvoice(id) {
   const inv = DB.invoices.find(i => i.id === id);
   if (!inv) return;
   const cust = DB.customers.find(c => c.id === inv.customerId);
-  openModal('ظپط§طھظˆط±ط© ط¨ظٹط¹ ط±ظ‚ظ… ' + inv.number, `
-    <p><b>ط§ظ„طھط§ط±ظٹط®:</b> ${inv.date} &nbsp;|&nbsp; <b>ط§ظ„ط¹ظ…ظٹظ„:</b> ${cust ? cust.name : '-'} &nbsp;|&nbsp; <b>ظ†ظˆط¹ ط§ظ„ط¯ظپط¹:</b> ${inv.paymentType === 'cash' ? 'ظ†ظ‚ط¯ظٹ' : 'ط¢ط¬ظ„'}</p>
+  openModal('فاتورة بيع رقم ' + inv.number, `
+    <p><b>التاريخ:</b> ${inv.date} &nbsp;|&nbsp; <b>العميل:</b> ${cust ? cust.name : '-'} &nbsp;|&nbsp; <b>نوع الدفع:</b> ${inv.paymentType === 'cash' ? 'نقدي' : 'آجل'}</p>
     <div class="tableWrap" style="margin-top:12px;">
       <table>
-        <thead><tr><th>ط§ظ„طµظ†ظپ</th><th>ط§ظ„ظ…ط®ط²ظ†</th><th>ط§ظ„ظƒظ…ظٹط©</th><th>ط§ظ„ط³ط¹ط±</th><th>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</th></tr></thead>
+        <thead><tr><th>الصنف</th><th>المخزن</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
         <tbody>
           ${inv.lines.map(ln => {
             const item = DB.items.find(i => i.id === ln.itemId);
@@ -854,13 +854,13 @@ function viewInvoice(id) {
         </tbody>
       </table>
     </div>
-    <div style="margin-top:14px; text-align:left; font-size:16px;"><b>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ: ${fmt(inv.total)}</b></div>
+    <div style="margin-top:14px; text-align:left; font-size:16px;"><b>الإجمالي: ${fmt(inv.total)}</b></div>
   `, null, true);
 }
 
-// ط§ظ„طھط´ط؛ظٹظ„ ظˆط§ظ„طھظ‡ظٹط¦ط© ط§ظ„ظ…ط¨ط§ط´ط±ط© ط¨ط¹ط¯ ظپطھط­ ط§ظ„ظ†ط¸ط§ظ…
-// loadDB ط£طµط¨ط­طھ ط؛ظٹط± ظ…طھط²ط§ظ…ظ†ط© (ط¨طھطھطµظ„ ط¨ظ€ Firebase ط§ظ„ط£ظˆظ„) ظپظ…ط­طھط§ط¬ظٹظ† ظ†ظ†طھط¸ط±ظ‡ط§
-// ظ‚ط¨ظ„ ظ…ط§ ظ†ط¸ظ‡ط± ط´ط§ط´ط© ط§ظ„ط¯ط®ظˆظ„طŒ ط¹ط´ط§ظ† ظ…ظٹط­طµظ„ط´ ط¯ط®ظˆظ„ ط¨ط¨ظٹط§ظ†ط§طھ ظپط§ط¶ظٹط© ظ‚ط¨ظ„ ظ…ط§ طھظˆطµظ„ ظ…ظ† ط§ظ„ط³ط­ط§ط¨ط©.
+// التشغيل والتهيئة المباشرة بعد فتح النظام
+// loadDB أصبحت غير متزامنة (بتتصل بـ Firebase الأول) فمحتاجين ننتظرها
+// قبل ما نظهر شاشة الدخول، عشان ميحصلش دخول ببيانات فاضية قبل ما توصل من السحابة.
 window.onload = function() {
   const loadingEl = document.getElementById('loadingScreen');
   const loginEl = document.getElementById('loginScreen');
