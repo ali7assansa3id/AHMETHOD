@@ -1,13 +1,13 @@
 /* ============================================================
    AHMETHOD — js/users.js
    The login screen only asks for a username + password (no company
-   field), exactly like the original single-tenant file. To route a
-   login to the right company (or to the super admin) we keep one
-   small platform-wide index: { username -> {companyId, role} }.
+   field). To route a login to the right company (or to the super
+   admin) we keep one small platform-wide index:
+   { username -> {companyId, role} } — synced via js/storage.js.
 
    This file keeps that index in sync. It never touches DB.users
-   itself (that stays exactly as in the original js/app.js) — it
-   only mirrors it.
+   itself (that stays exactly as managed in js/app.js) — it only
+   mirrors it.
    ============================================================ */
 
 function isUsernameTakenGlobally(username, excludeCompanyId) {
@@ -18,19 +18,15 @@ function isUsernameTakenGlobally(username, excludeCompanyId) {
   return true;
 }
 
-/* Called after js/app.js's saveUser()/deleteUser() run, once a company is
-   the "active" one (ACTIVE_COMPANY_ID set by js/auth.js). Re-scans the
-   current company's DB.users and updates the index: adds new usernames,
-   removes ones that no longer exist, leaves everyone else untouched. */
+/* Called from js/app.js's saveDB(), once a company is the "active" one
+   (ACTIVE_COMPANY_ID set by js/auth.js). Re-scans the current company's
+   DB.users and updates the index: adds new usernames, removes ones that
+   no longer exist, leaves everyone else untouched. */
 function syncUserIndexForCurrentCompany() {
-  // NOTE: DB is declared with `let` at the top of js/app.js — that makes it a
-  // shared global *identifier* visible to every classic <script> on the page,
-  // but NOT a `window.DB` property, so it must be read as bare `DB` here.
   if (!window.ACTIVE_COMPANY_ID || typeof DB === 'undefined' || !DB || !Array.isArray(DB.users)) return;
   const companyId = window.ACTIVE_COMPANY_ID;
   const idx = getUserIndex();
 
-  // Drop stale entries that used to belong to this company but no longer exist in DB.users
   const currentUsernames = new Set(DB.users.map(u => u.username));
   Object.keys(idx).forEach(uname => {
     if (idx[uname].companyId === companyId && !currentUsernames.has(uname)) {
@@ -38,7 +34,6 @@ function syncUserIndexForCurrentCompany() {
     }
   });
 
-  // Add/refresh current users of this company
   DB.users.forEach(u => {
     idx[u.username] = {
       companyId,

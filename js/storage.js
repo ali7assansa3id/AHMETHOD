@@ -1,73 +1,97 @@
-// 1. دالة مجانية لجلب عنوان IP الخاص بالجهاز تلقائياً
-async function getClientIP() {
-    try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        return data.ip;
-    } catch (e) {
-        return 'غير معروف';
-    }
+/* ============================================================
+   AHMETHOD — js/storage.js
+   Namespaced localStorage access for PLATFORM-level data:
+   companies, the super-admin account, and the platform-wide
+   username index. These are now ALSO synced to Firebase
+   (path: ERP_PLATFORM) so registering a company, or the super
+   admin account, is visible from any device/browser — not just
+   the one that created it. localStorage stays as the instant
+   local copy (works even if the network request hasn't landed
+   yet), exactly the same pattern app.js already uses for each
+   company's own accounting data.
+
+   The current login session (NS.session) is NOT synced to the
+   cloud — a session is meant to be per-device/per-browser, like
+   any normal login.
+
+   Company accounting data itself is NOT stored here — it keeps
+   using the key from js/app.js ('acc_system_data_v1__<companyId>'
+   locally, 'ERP_COMPANIES/<companyId>' on Firebase). See
+   migrateLegacyDataIfNeeded() in js/auth.js for how data from
+   the original single-tenant version (before this multi-tenant
+   layer existed) gets picked up automatically.
+   ============================================================ */
+
+const NS = {
+  companies: 'ahmethod_companies',
+  platformUsers: 'ahmethod_platform_users', // the super_admin account
+  userIndex: 'ahmethod_user_index',         // { username: {companyId, role} } — login router
+  session: 'ahmethod_session',              // persisted current login (local only, not synced)
+  legacyMigrated: 'ahmethod_legacy_migrated_v1',
+};
+
+function psGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function psSet(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
-// 2. كائن إدارة البيانات للتواصل مع Firebase بدلاً من LocalStorage
-const Storage = {
-    // جلب البيانات المخزنة من Firebase Realtime Database
-    async getData(key) {
-        try {
-            if (!window.db) {
-                console.warn('Firebase لم يتصل بعد، يتم جلب البيانات محلياً');
-                const localData = localStorage.getItem(key);
-                return localData ? JSON.parse(localData) : [];
-            }
-            const snapshot = await window.db.ref(key).once('value');
-            const data = snapshot.val();
-            return data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-        } catch (e) {
-            console.error('خطأ في جلب البيانات من السيرفر:', e);
-            const fallback = localStorage.getItem(key);
-            return fallback ? JSON.parse(fallback) : [];
-        }
-    },
+/* ---------------- Firebase sync for platform-level data ---------------- */
+function fbPlatformRef() {
+  return firebase.database().ref('ERP_PLATFORM');
+}
 
-    // حفظ البيانات في Firebase وتسجيل الـ IP وتاريخ التسجيل تلقائياً
-    async saveData(key, data) {
-        try {
-            const userIP = await getClientIP();
+function pushPlatformToCloud() {
+  try {
+    fbPlatformRef().set({
+      companies: getCompanies(),
+      platformUsers: getPlatformUsers(),
+      userIndex: getUserIndex(),
+    }).catch(err => {
+      console.error('فشلت مزامنة بيانات المنصة (الشركات/المستخدمين) مع Firebase', err);
+    });
+  } catch (e) {
+    // Firebase قد لا يكون جاهزًا بعد لحظة أول استدعاء — يتجاهل بأمان
+  }
+}
 
-            // إذا كانت البيانات مصفوفة حسابات/شركات، نضمن وجود الـ IP وتاريخ الإنشاء
-            if (Array.isArray(data)) {
-                data = data.map(item => {
-                    if (typeof item === 'object' && item !== null) {
-                        if (!item.ip) item.ip = userIP;
-                        if (!item.createdAt) item.createdAt = new Date().toISOString();
-                    }
-                    return item;
-                });
-            }
+// يُستدعى مرة واحدة عند فتح الصفحة، قبل أي شيء آخر، عشان نضمن إن أي
+// شركة أو مستخدم اتسجل من جهاز تاني يظهر هنا كمان.
+function loadPlatformFromCloud(onReady) {
+  try {
+    fbPlatformRef().once('value').then(snap => {
+      const remote = snap.val();
+      if (remote) {
+        if (remote.companies) psSet(NS.companies, remote.companies);
+        if (remote.platformUsers) psSet(NS.platformUsers, remote.platformUsers);
+        if (remote.userIndex) psSet(NS.userIndex, remote.userIndex);
+      }
+      if (onReady) onReady();
+    }).catch(err => {
+      console.error('تعذر تحميل بيانات المنصة من Firebase — سيتم استخدام آخر نسخة محلية', err);
+      if (onReady) onReady();
+    });
+  } catch (e) {
+    if (onReady) onReady();
+  }
+}
 
-            // الحفظ المحلي للاحتياط
-            localStorage.setItem(key, JSON.stringify(data));
+function getCompanies() { return psGet(NS.companies, []); }
+function saveCompanies(list) { psSet(NS.companies, list); pushPlatformToCloud(); }
+function getCompanyById(id) { return getCompanies().find(c => c.id === id) || null; }
 
-            // الحفظ السحابي في Firebase ليكون متاحاً لجميع الأجهزة
-            if (window.db) {
-                await window.db.ref(key).set(data);
-            }
-            return true;
-        } catch (e) {
-            console.error('خطأ في حفظ البيانات سحابياً:', e);
-            localStorage.setItem(key, JSON.stringify(data));
-            return false;
-        }
-    },
+function getPlatformUsers() { return psGet(NS.platformUsers, []); }
+function savePlatformUsers(list) { psSet(NS.platformUsers, list); pushPlatformToCloud(); }
 
-    // الاستماع للتحديثات المباشرة (لكي يرى المدير أي حساب جديد فور تسجيله من أي جهاز)
-    listenToData(key, callback) {
-        if (window.db) {
-            window.db.ref(key).on('value', (snapshot) => {
-                const data = snapshot.val();
-                const result = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-                callback(result);
-            });
-        }
-    }
-};
+function getUserIndex() { return psGet(NS.userIndex, {}); }
+function saveUserIndex(idx) { psSet(NS.userIndex, idx); pushPlatformToCloud(); }
+
+function getSession() { return psGet(NS.session, null); }
+function saveSession(s) { psSet(NS.session, s); }
+function clearSessionStorage() { localStorage.removeItem(NS.session); }

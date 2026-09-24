@@ -1,9 +1,9 @@
 /* ============================================================
    AHMETHOD — js/utils.js
-   Small shared helpers used ONLY by the new multi-tenant layer
+   Small shared helpers used ONLY by the multi-tenant layer
    (auth.js / companies.js / users.js). Nothing here duplicates
-   or overrides anything from js/app.js (the original accounting
-   engine), which keeps its own uid()/fmt()/todayStr() untouched.
+   or overrides anything from js/app.js (the accounting engine),
+   which keeps its own uid()/fmt()/todayStr() untouched.
    ============================================================ */
 
 const SUBSCRIPTION_PLANS = {

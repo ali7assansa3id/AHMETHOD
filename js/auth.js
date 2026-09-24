@@ -1,58 +1,88 @@
 /* ============================================================
    AHMETHOD — js/auth.js
-   Owns: super-admin seeding, legacy single-tenant data migration,
-   the login button's actual behavior, session persistence (so a
-   refresh keeps you logged in, exactly like the original file),
-   the subscription gate, and the one-and-only DOMContentLoaded
-   bootstrap for the whole app (js/app.js's own bootstrap was
-   removed — see the note at the bottom of js/app.js).
+   Owns: super-admin seeding, legacy single-tenant data migration
+   (from BOTH the old localStorage key and the old shared Firebase
+   path used before multi-tenant existed), the login button's
+   actual behavior, session persistence (so a refresh keeps you
+   logged in), the subscription gate, and the one-and-only
+   DOMContentLoaded bootstrap for the whole app (js/app.js's own
+   bootstrap was removed — see the note at the bottom of js/app.js).
    ============================================================ */
 
 window.ACTIVE_COMPANY_ID = null;
 
 /* ---------------- boot ---------------- */
-function bootstrapPlatform() {
+function bootstrapPlatform(onDone) {
   const platformUsers = getPlatformUsers();
   if (!platformUsers.find(x => x.role === PLATFORM_ROLES.SUPER_ADMIN)) {
     platformUsers.push({ id: 1, username: 'admin', password: 'admin123', role: PLATFORM_ROLES.SUPER_ADMIN, createdAt: new Date().toISOString() });
     savePlatformUsers(platformUsers);
   }
-  migrateLegacyDataIfNeeded();
+  migrateLegacyDataIfNeeded(onDone);
 }
 
-/* If this file is being dropped onto a browser that already has data saved
-   under the ORIGINAL single-tenant key ('acc_system_data_v1') from before
-   this multi-tenant version existed, wrap that data into a proper company
-   ("الشركة الافتراضية") instead of losing it. The original key is left in
-   place untouched (never deleted) — only copied — so nothing is destroyed
-   even if this runs more than once or something goes wrong reading it. */
-function migrateLegacyDataIfNeeded() {
-  if (localStorage.getItem(NS.legacyMigrated)) return;
+/* If a browser already has data saved under the ORIGINAL single-tenant
+   localStorage key ('acc_system_data_v1'), or if the Firebase project
+   still has data under the ORIGINAL shared path ('ERP_FULL_DB') from
+   before this multi-tenant version existed, wrap that data into a proper
+   company ("الشركة الافتراضية") instead of losing it. Original sources
+   are left in place untouched (never deleted) — only copied. */
+function migrateLegacyDataIfNeeded(onDone) {
+  const done = () => { if (onDone) onDone(); };
+  if (localStorage.getItem(NS.legacyMigrated)) { done(); return; }
+
   const legacyRaw = localStorage.getItem('acc_system_data_v1');
-  const companies = getCompanies();
-  if (legacyRaw && companies.length === 0) {
+  if (legacyRaw && getCompanies().length === 0) {
     try {
-      const legacyData = JSON.parse(legacyRaw);
-      const companyId = 'legacy';
-      const companyName = (legacyData.settings && legacyData.settings.companyName) ? legacyData.settings.companyName : 'الشركة الافتراضية';
-      const company = {
-        id: companyId, name: companyName, adminName: '-', phone: '', email: '',
-        subscriptionType: 'pro', subscriptionStart: todayISO(), subscriptionEnd: addDaysToDate(todayISO(), 3650),
-        status: 'active', createdAt: new Date().toISOString(),
-      };
-      companies.push(company);
-      saveCompanies(companies);
-      localStorage.setItem('acc_system_data_v1__' + companyId, legacyRaw);
-      const idx = getUserIndex();
-      (legacyData.users || []).forEach(u => {
-        idx[u.username] = { companyId, role: u.isAdmin ? PLATFORM_ROLES.COMPANY_ADMIN : PLATFORM_ROLES.EMPLOYEE };
-      });
-      saveUserIndex(idx);
-    } catch (e) {
-      // Legacy data unreadable — leave it exactly where it was, untouched.
-    }
+      wrapLegacyIntoCompany(JSON.parse(legacyRaw), 'legacy-local');
+    } catch (e) { /* بيانات محلية قديمة تالفة — تجاهلها بأمان */ }
+    localStorage.setItem(NS.legacyMigrated, '1');
+    done();
+    return;
   }
+
+  // لا توجد بيانات محلية قديمة — جرّب المسار السحابي القديم المشترك
+  // (اللي كان النظام بيستخدمه قبل تعدد الشركات)
+  if (getCompanies().length === 0) {
+    try {
+      firebase.database().ref('ERP_FULL_DB').once('value').then(snap => {
+        const remote = snap.val();
+        if (remote && getCompanies().length === 0) {
+          wrapLegacyIntoCompany(remote, 'legacy-cloud');
+        }
+        localStorage.setItem(NS.legacyMigrated, '1');
+        done();
+      }).catch(() => {
+        localStorage.setItem(NS.legacyMigrated, '1');
+        done();
+      });
+      return;
+    } catch (e) { /* يكمل عادي تحت */ }
+  }
+
   localStorage.setItem(NS.legacyMigrated, '1');
+  done();
+}
+
+function wrapLegacyIntoCompany(legacyData, companyId) {
+  const companyName = (legacyData.settings && legacyData.settings.companyName) ? legacyData.settings.companyName : 'الشركة الافتراضية';
+  const company = {
+    id: companyId, name: companyName, adminName: '-', phone: '', email: '',
+    subscriptionType: 'pro', subscriptionStart: todayISO(), subscriptionEnd: addDaysToDate(todayISO(), 3650),
+    status: 'active', createdAt: new Date().toISOString(),
+  };
+  const companies = getCompanies();
+  companies.push(company);
+  saveCompanies(companies);
+  localStorage.setItem('acc_system_data_v1__' + companyId, JSON.stringify(legacyData));
+  try { firebase.database().ref('ERP_COMPANIES/' + companyId).set(legacyData); } catch (e) {}
+  const idx = getUserIndex();
+  (legacyData.users || []).forEach(u => {
+    const uname = u.username || u.user; // النسخة القديمة جدًا كانت بتستخدم "user" بدل "username"
+    if (!uname) return;
+    idx[uname] = { companyId, role: (u.isAdmin || u.role === 'admin') ? PLATFORM_ROLES.COMPANY_ADMIN : PLATFORM_ROLES.EMPLOYEE };
+  });
+  saveUserIndex(idx);
 }
 
 /* ---------------- login ---------------- */
@@ -80,15 +110,15 @@ function platformDoLogin() {
   const live = computeLiveStatus(company);
   if (live !== 'active') { showSubscriptionExpiredScreen(company); return; }
 
-  window.ACTIVE_COMPANY_ID = company.id;
-  loadDB(company.id);
-  const user = DB.users.find(x => x.username === u && x.password === p);
-  if (!user) { errEl.textContent = 'بيانات الدخول غير صحيحة'; return; }
+  loadDB(company.id, function () {
+    const user = DB.users.find(x => x.username === u && x.password === p);
+    if (!user) { errEl.textContent = 'بيانات الدخول غير صحيحة'; return; }
 
-  DB.currentUserId = user.id; saveDB();
-  logAudit('تسجيل دخول', 'system', '-');
-  saveSession({ role: user.isAdmin ? 'company_admin' : 'employee', companyId: company.id, userId: user.id, loginTime: new Date().toISOString() });
-  showApp();
+    DB.currentUserId = user.id; saveDB();
+    logAudit('تسجيل دخول', 'system', '-');
+    saveSession({ role: user.isAdmin ? 'company_admin' : 'employee', companyId: company.id, userId: user.id, loginTime: new Date().toISOString() });
+    showApp();
+  });
 }
 
 function platformLogout() {
@@ -143,13 +173,14 @@ function restoreSessionOnLoad() {
     if (!company) { clearSessionStorage(); return; }
     const live = computeLiveStatus(company);
     if (live !== 'active') { showSubscriptionExpiredScreen(company); return; }
-    window.ACTIVE_COMPANY_ID = company.id;
-    loadDB(company.id);
-    if (DB.currentUserId && DB.users.find(x => x.id === DB.currentUserId)) {
-      showApp();
-    } else {
-      clearSessionStorage();
-    }
+    loadDB(company.id, function () {
+      if (DB.currentUserId && DB.users.find(x => x.id === DB.currentUserId)) {
+        showApp();
+      } else {
+        clearSessionStorage();
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+    });
   }
 }
 
@@ -171,10 +202,20 @@ setInterval(function () {
   }
 }, 5 * 60 * 1000);
 
-/* ---------------- init ---------------- */
+/* ---------------- init: the one-and-only bootstrap for the whole app ---------------- */
 document.addEventListener('DOMContentLoaded', function () {
-  bootstrapPlatform();
-  document.getElementById('liPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') platformDoLogin(); });
-  document.getElementById('liUser').addEventListener('keydown', function (e) { if (e.key === 'Enter') platformDoLogin(); });
-  restoreSessionOnLoad();
+  const loadingEl = document.getElementById('loadingScreen');
+  const loginEl = document.getElementById('loginScreen');
+
+  // 1) جيب بيانات المنصة (الشركات/فهرس المستخدمين) من Firebase أولاً
+  loadPlatformFromCloud(function () {
+    // 2) جهّز حساب المدير العام لو أول مرة، ورحّل أي بيانات قديمة
+    bootstrapPlatform(function () {
+      document.getElementById('liPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') platformDoLogin(); });
+      document.getElementById('liUser').addEventListener('keydown', function (e) { if (e.key === 'Enter') platformDoLogin(); });
+      // 3) اخفِ شاشة التحميل واستعد الجلسة المحفوظة (أو اعرض شاشة الدخول)
+      if (loadingEl) loadingEl.style.display = 'none';
+      restoreSessionOnLoad();
+    });
+  });
 });
