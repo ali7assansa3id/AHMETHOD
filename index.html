@@ -59,8 +59,13 @@
 </head>
 <body>
 
+  <!-- شاشة تحميل مؤقتة أثناء الاتصال بـ Firebase -->
+  <div id="loadingScreen" style="text-align:center; margin-top:120px; color:#64748b; font-size:15px;">
+    جاري الاتصال بقاعدة البيانات السحابية...
+  </div>
+
   <!-- شاشة تسجيل الدخول -->
-  <div id="loginScreen">
+  <div id="loginScreen" style="display:none;">
     <h2>تسجيل الدخول</h2>
     <div class="field">
       <label>اسم المستخدم</label>
@@ -91,6 +96,9 @@
 
   <!-- استدعاء المكتبات الخارجية للكتابة إلى Excel إذا لزم الأمر -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- مكتبات Firebase (النسخة compat — أبسط استخدام بدون أدوات بناء/npm) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
   <!-- استدعاء الملف البرمجي الرئيسي -->
   <script src="app.js"></script>
 </body>
