@@ -1,45 +1,56 @@
 /* =========================================================
    نظام المحاسبة والمخازن المتكامل (ERP System)
    الجزء الأول: التهيئة + إدارة الحسابات + الفواتير
+   ملحوظة: هذا الملف بقى يعمل كطبقة "شركة واحدة" داخل نظام
+   تعدد الشركات (منصة). كل التهيئة الخاصة بتسجيل الدخول،
+   الشركات، الاشتراكات ولوحة مدير النظام العام أصبحت في:
+   js/auth.js, js/companies.js, js/storage.js, js/users.js,
+   js/permissions.js, js/utils.js
    ========================================================= */
 
-// ---------- 1. التهيئة وقاعدة البيانات المحلية ----------
-let DB = {
-  users: [
-    { id: 1, name: 'المدير العام', user: 'admin', pass: 'admin123', role: 'admin', perms: ['all'] }
-  ],
-  accounts: [
-    { id: 100, code: '1', name: 'الأصول', type: 'asset', parentId: null },
-    { id: 101, code: '11', name: 'الأصول المتداولة', type: 'asset', parentId: 100 },
-    { id: 102, code: '111', name: 'الخزينة الرئيسية', type: 'asset', parentId: 101 },
-    { id: 103, code: '112', name: 'البنك', type: 'asset', parentId: 101 },
-    { id: 104, code: '113', name: 'العملاء', type: 'asset', parentId: 101 },
-    { id: 105, code: '114', name: 'المخزون', type: 'asset', parentId: 101 },
-    { id: 200, code: '2', name: 'الالتزامات', type: 'liability', parentId: null },
-    { id: 201, code: '21', name: 'الموردين', type: 'liability', parentId: 200 },
-    { id: 300, code: '3', name: 'الإيرادات', type: 'income', parentId: null },
-    { id: 301, code: '31', name: 'مبيعات البضائع', type: 'income', parentId: 300 },
-    { id: 400, code: '4', name: 'المصروفات', type: 'expense', parentId: null },
-    { id: 401, code: '41', name: 'تكلفة البضاعة المباعة', type: 'expense', parentId: 400 }
-  ],
-  items: [
-    { id: 1, code: 'IT001', name: 'صنف افتراضي', unit: 'قطعة', minQty: 5 }
-  ],
-  warehouses: [
-    { id: 1, name: 'المخزن الرئيسي', code: 'WH1' }
-  ],
-  customers: [],
-  suppliers: [],
-  invoices: [],
-  journalEntries: [],
-  stockOps: [],
-  stockBatches: [],
-  auditLogs: []
-};
+// ---------- 1. قالب البيانات الافتراضي لأي شركة جديدة ----------
+// يُستخدم من js/companies.js عند إنشاء شركة جديدة عبر شاشة التسجيل،
+// ومن هذا الملف نفسه كقيمة ابتدائية قبل وصول البيانات من Firebase.
+function defaultData() {
+  return {
+    currentUserId: null,
+    settings: { companyName: '', logo: '' },
+    users: [
+      { id: 1, name: 'المدير العام', username: 'admin', password: 'admin123', isAdmin: true, perms: {} }
+    ],
+    accounts: [
+      { id: 100, code: '1', name: 'الأصول', type: 'asset', parentId: null },
+      { id: 101, code: '11', name: 'الأصول المتداولة', type: 'asset', parentId: 100 },
+      { id: 102, code: '111', name: 'الخزينة الرئيسية', type: 'asset', parentId: 101 },
+      { id: 103, code: '112', name: 'البنك', type: 'asset', parentId: 101 },
+      { id: 104, code: '113', name: 'العملاء', type: 'asset', parentId: 101 },
+      { id: 105, code: '114', name: 'المخزون', type: 'asset', parentId: 101 },
+      { id: 200, code: '2', name: 'الالتزامات', type: 'liability', parentId: null },
+      { id: 201, code: '21', name: 'الموردين', type: 'liability', parentId: 200 },
+      { id: 300, code: '3', name: 'الإيرادات', type: 'income', parentId: null },
+      { id: 301, code: '31', name: 'مبيعات البضائع', type: 'income', parentId: 300 },
+      { id: 400, code: '4', name: 'المصروفات', type: 'expense', parentId: null },
+      { id: 401, code: '41', name: 'تكلفة البضاعة المباعة', type: 'expense', parentId: 400 }
+    ],
+    items: [
+      { id: 1, code: 'IT001', name: 'صنف افتراضي', unit: 'قطعة', minQty: 5 }
+    ],
+    warehouses: [
+      { id: 1, name: 'المخزن الرئيسي', code: 'WH1' }
+    ],
+    customers: [],
+    suppliers: [],
+    invoices: [],
+    journalEntries: [],
+    stockOps: [],
+    stockBatches: [],
+    auditLogs: []
+  };
+}
 
-let currentUserId = null;
+let DB = defaultData();
 
-/* ---------- Firebase Realtime Database ---------- */
+/* ---------- Firebase Realtime Database (بيانات الشركة الحالية فقط) ---------- */
 // إعدادات مشروعك على Firebase (ahmethodpro) — القيم دي client-side API key
 // عادي تكون ظاهرة في الكود، الحماية الحقيقية بتيجي من الـ Security Rules
 // في لوحة تحكم Firebase (Realtime Database → Rules)، مش من إخفاء المفتاح ده.
@@ -54,47 +65,60 @@ const firebaseConfig = {
   measurementId: "G-L542GK25F0"
 };
 firebase.initializeApp(firebaseConfig);
-const fbRef = firebase.database().ref('ERP_FULL_DB');
+
+// كل شركة ليها مسارها الخاص جوه Firebase: ERP_COMPANIES/<companyId>
+// بدل المسار القديم المشترك ERP_FULL_DB (اللي كان بيستخدمه النظام قبل
+// تعدد الشركات — بياناته بيتم ترحيلها تلقائيًا أول مرة، راجع js/auth.js).
+let fbRef = null;
 
 function saveDB() {
+  const companyId = window.ACTIVE_COMPANY_ID;
+  if (!companyId) return; // لا يوجد سياق شركة نشطة (لسه ما حصلش تسجيل دخول)
   // نسخة محلية فورية (تشتغل حتى لو النت مقطوع لحظتها)
   try {
-    localStorage.setItem('ERP_FULL_DB', JSON.stringify(DB));
-  } catch(e) {
+    localStorage.setItem('acc_system_data_v1__' + companyId, JSON.stringify(DB));
+  } catch (e) {
     console.error('فشل حفظ البيانات في LocalStorage', e);
   }
   // مزامنة مع Firebase — لو فشلت، البيانات المحلية سليمة والنظام يكمل شغل عادي
-  fbRef.set(DB).catch(err => {
-    console.error('فشل حفظ البيانات على Firebase', err);
-    toast('تعذّرت المزامنة مع قاعدة البيانات السحابية (تم الحفظ محليًا فقط)');
-  });
+  if (fbRef) {
+    fbRef.set(DB).catch(err => {
+      console.error('فشل حفظ البيانات على Firebase', err);
+      toast('تعذّرت المزامنة مع قاعدة البيانات السحابية (تم الحفظ محليًا فقط)');
+    });
+  }
+  // يبقي فهرس أسماء المستخدمين العام (لتوجيه تسجيل الدخول) متزامن مع
+  // آخر نسخة من مستخدمي الشركة الحالية — الدالة معرّفة في js/users.js
+  if (window.syncUserIndexForCurrentCompany) syncUserIndexForCurrentCompany();
 }
 
-function loadDB(onReady) {
+function loadDB(companyId, onReady) {
+  window.ACTIVE_COMPANY_ID = companyId;
+  DB = defaultData();
+  fbRef = firebase.database().ref('ERP_COMPANIES/' + companyId);
   fbRef.once('value')
     .then(snapshot => {
       const remote = snapshot.val();
       if (remote) {
-        DB = { ...DB, ...remote };
+        DB = { ...defaultData(), ...remote };
       } else {
-        // أول مرة تفتح فيها قاعدة البيانات السحابية فاضية - نرفعلها أي نسخة محلية قديمة موجودة
-        mergeLocalFallback();
+        mergeLocalFallback(companyId);
       }
       if (onReady) onReady();
     })
     .catch(err => {
       console.error('تعذر الاتصال بـ Firebase — سيتم استخدام آخر نسخة محلية محفوظة', err);
-      mergeLocalFallback();
+      mergeLocalFallback(companyId);
       if (onReady) onReady();
     });
 }
 
-function mergeLocalFallback() {
-  const saved = localStorage.getItem('ERP_FULL_DB');
+function mergeLocalFallback(companyId) {
+  const saved = localStorage.getItem('acc_system_data_v1__' + companyId);
   if (saved) {
     try {
-      DB = { ...DB, ...JSON.parse(saved) };
-    } catch(e) {
+      DB = { ...defaultData(), ...JSON.parse(saved) };
+    } catch (e) {
       console.error('خطأ في تحميل النسخة المحلية الاحتياطية');
     }
   }
@@ -107,14 +131,14 @@ function fmt(num) { return Number(num || 0).toLocaleString('ar-EG', { minimumFra
 
 function toast(msg) {
   const t = document.getElementById('toast');
-  if(!t) return;
+  if (!t) return;
   t.innerText = msg;
   t.style.display = 'block';
   setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
 
 function logAudit(action, module, details) {
-  const u = DB.users.find(x => x.id === currentUserId);
+  const u = DB.users.find(x => x.id === DB.currentUserId);
   DB.auditLogs.push({
     id: uid(),
     user: u ? u.name : 'غير معروف',
@@ -125,10 +149,10 @@ function logAudit(action, module, details) {
 }
 
 function requirePerm(module, perm) {
-  const u = DB.users.find(x => x.id === currentUserId);
-  if(!u) return false;
-  if(u.role === 'admin' || u.perms.includes('all')) return true;
-  return u.perms.includes(`${module}_${perm}`);
+  const u = DB.users.find(x => x.id === DB.currentUserId);
+  if (!u) return false;
+  if (u.isAdmin) return true;
+  return !!(u.perms && u.perms[module] && u.perms[module][perm]);
 }
 
 /* ---------- Modal Window Management ---------- */
@@ -146,7 +170,7 @@ function openModal(title, htmlContent, onConfirm, hideButtons = false) {
       </div>
     </div>
   `;
-  if(!hideButtons && onConfirm) {
+  if (!hideButtons && onConfirm) {
     document.getElementById('modalOkBtn').onclick = onConfirm;
   }
 }
@@ -155,45 +179,63 @@ function closeModal() {
   document.getElementById('modalRoot').innerHTML = '';
 }
 
-/* ---------- 3. تسجيل الدخول وإدارة الجلسات ---------- */
-function doLogin() {
-  const uInput = document.getElementById('liUser').value.trim();
-  const pInput = document.getElementById('liPass').value.trim();
-  const errEl = document.getElementById('liErr');
-
-  const user = DB.users.find(x => x.user === uInput && x.pass === pInput);
-  if (user) {
-    currentUserId = user.id;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appShell').style.display = 'flex';
-    renderUserBox();
-    renderNav();
-    renderAll();
-    logAudit('تسجيل دخول', 'الأمان', 'تم تسجيل الدخول بنجاح');
-    toast('مرحباً بك في النظام');
-  } else {
-    errEl.innerText = 'اسم المستخدم أو كلمة المرور غير صحيحة';
-  }
+/* ---------- 3. الدخول للتطبيق بعد نجاح تسجيل الدخول (المنطق الفعلي
+   لتسجيل الدخول نفسه — التحقق من كلمة السر، الاشتراك، وتوجيه الشركة
+   الصحيحة — أصبح في js/auth.js ضمن platformDoLogin()) ---------- */
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  const saShell = document.getElementById('superAdminShell');
+  if (saShell) saShell.style.display = 'none';
+  const expShell = document.getElementById('subExpiredScreen');
+  if (expShell) expShell.style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  renderUserBox();
+  renderNav();
+  renderAll();
 }
 
 function doLogout() {
   logAudit('تسجيل خروج', 'الأمان', 'خروج المستخدم');
-  currentUserId = null;
-  document.getElementById('appShell').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('liPass').value = '';
+  DB.currentUserId = null;
+  saveDB();
+  // ينظف جلسة المنصة (الشركة الحالية + الدور) كمان — معرّفة في js/auth.js
+  if (window.platformLogout) {
+    platformLogout();
+  } else {
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
 }
 
 function renderUserBox() {
-  const u = DB.users.find(x => x.id === currentUserId);
+  const u = DB.users.find(x => x.id === DB.currentUserId);
+  const company = (window.getCompanyById && window.ACTIVE_COMPANY_ID) ? getCompanyById(window.ACTIVE_COMPANY_ID) : null;
+  const session = window.getSession ? getSession() : null;
+  const backBtn = (session && session.viaSuperAdmin)
+    ? `<button class="btn secondary" style="margin-right:8px; padding:4px 8px; font-size:12px;" onclick="backToSuperAdminPanel()">↩ رجوع للوحة الإدارة</button>`
+    : '';
   document.getElementById('userBox').innerHTML = `
-    <span>المستخدم: <b>${u ? u.name : ''}</b> (${u ? u.role : ''})</span>
+    ${backBtn}
+    <span>المستخدم: <b>${u ? u.name : ''}</b> (${u && u.isAdmin ? 'مدير الشركة' : 'موظف'})</span>
     <button class="btn danger" style="margin-right:10px; padding:4px 8px; font-size:12px;" onclick="doLogout()">تسجيل الخروج</button>
   `;
+  const titleEl = document.querySelector('#appShell .header h3');
+  if (titleEl) titleEl.innerText = company ? company.name : 'برنامج المحاسبة والمخازن';
+}
+
+function backToSuperAdminPanel() {
+  document.getElementById('appShell').style.display = 'none';
+  if (window.saveSession && window.getPlatformUsers) {
+    const su = getPlatformUsers().find(x => x.role === 'super_admin');
+    if (su) saveSession({ role: 'super_admin', userId: su.id, loginTime: new Date().toISOString() });
+  }
+  document.getElementById('superAdminShell').style.display = 'flex';
+  if (window.renderCompaniesPanel) renderCompaniesPanel();
 }
 
 function renderNav() {
   const nav = document.getElementById('navMain');
+  const isAdmin = requirePerm('users', 'view') || (DB.users.find(x => x.id === DB.currentUserId) || {}).isAdmin;
   nav.innerHTML = `
     <button class="btn" onclick="renderInventory(document.getElementById('content'))">الأصناف والمخزون</button>
     <button class="btn" onclick="renderStockReceive(document.getElementById('content'))">إذن استلام</button>
@@ -203,7 +245,139 @@ function renderNav() {
     <button class="btn" onclick="renderAccountsTree(document.getElementById('content'))">شجرة الحسابات</button>
     <button class="btn" onclick="renderStockOps(document.getElementById('content'))">سجل الحركات</button>
     <button class="btn secondary" onclick="renderInvImportExport(document.getElementById('content'))">Excel استيراد/تصدير</button>
+    ${isAdmin ? `<button class="btn secondary" onclick="renderUsers(document.getElementById('content'))">المستخدمون والصلاحيات</button>` : ''}
   `;
+}
+
+/* ---------- 3ب. المستخدمون والصلاحيات (خاص بمدير الشركة) ---------- */
+const PERM_MODULES = [
+  { id: 'inventory', label: 'الأصناف والمخزون' },
+  { id: 'invoices', label: 'الفواتير والمبيعات' },
+  { id: 'accounts', label: 'شجرة الحسابات' },
+  { id: 'stockops', label: 'حركات المخزون (استلام/صرف/تحويل)' },
+];
+
+function renderUsers(root) {
+  if (!requirePerm('users', 'view') && !((DB.users.find(x => x.id === DB.currentUserId) || {}).isAdmin)) {
+    root.innerHTML = '<div class="card"><p>لا تملك صلاحية الوصول لهذه الشاشة</p></div>';
+    return;
+  }
+  root.innerHTML = `
+    <div class="card">
+      <div class="cardHead" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>المستخدمون والصلاحيات</h2>
+        <button class="btn" onclick="openUserModal()">+ إضافة مستخدم جديد</button>
+      </div>
+      <div class="tableWrap">
+        <table>
+          <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>إجراءات</th></tr></thead>
+          <tbody>
+            ${DB.users.map(u => `
+              <tr>
+                <td>${u.name}</td>
+                <td>${u.username}</td>
+                <td>${u.isAdmin ? 'مدير الشركة' : 'موظف'}</td>
+                <td>
+                  <button class="btn secondary" style="padding:3px 8px;" onclick="openUserModal(${u.id})">تعديل</button>
+                  ${DB.users.length > 1 ? `<button class="btn danger" style="padding:3px 8px;" onclick="deleteUser(${u.id})">حذف</button>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openUserModal(id = null) {
+  const u = id ? DB.users.find(x => x.id === id) : { name: '', username: '', password: '', isAdmin: false, perms: {} };
+  const permsRows = PERM_MODULES.map(m => {
+    const p = (u.perms && u.perms[m.id]) || {};
+    return `
+      <tr>
+        <td>${m.label}</td>
+        <td><input type="checkbox" id="perm_${m.id}_view" ${p.view ? 'checked' : ''}></td>
+        <td><input type="checkbox" id="perm_${m.id}_add" ${p.add ? 'checked' : ''}></td>
+        <td><input type="checkbox" id="perm_${m.id}_edit" ${p.edit ? 'checked' : ''}></td>
+        <td><input type="checkbox" id="perm_${m.id}_delete" ${p.delete ? 'checked' : ''}></td>
+      </tr>
+    `;
+  }).join('');
+  openModal(id ? 'تعديل مستخدم' : 'إضافة مستخدم جديد', `
+    <div class="grid3" style="margin-bottom:10px;">
+      <div class="field"><label>الاسم</label><input id="uName" value="${u.name}"></div>
+      <div class="field"><label>اسم المستخدم</label><input id="uUser" value="${u.username}" ${id ? 'disabled' : ''}></div>
+      <div class="field"><label>كلمة المرور ${id ? '(اتركها فارغة لعدم التغيير)' : ''}</label><input id="uPass" type="password" value=""></div>
+    </div>
+    <div class="field" style="margin-bottom:10px;">
+      <label><input type="checkbox" id="uIsAdmin" ${u.isAdmin ? 'checked' : ''}> مدير الشركة (كل الصلاحيات تلقائيًا)</label>
+    </div>
+    <div id="uPermsWrap" style="${u.isAdmin ? 'display:none;' : ''}">
+      <h4 style="margin-bottom:6px;">الصلاحيات التفصيلية</h4>
+      <div class="tableWrap">
+        <table>
+          <thead><tr><th>الشاشة</th><th>عرض</th><th>إضافة</th><th>تعديل</th><th>حذف</th></tr></thead>
+          <tbody>${permsRows}</tbody>
+        </table>
+      </div>
+    </div>
+  `, () => saveUser(id));
+  const adminChk = document.getElementById('uIsAdmin');
+  if (adminChk) {
+    adminChk.addEventListener('change', function () {
+      document.getElementById('uPermsWrap').style.display = this.checked ? 'none' : '';
+    });
+  }
+}
+
+function saveUser(id) {
+  const name = document.getElementById('uName').value.trim();
+  const username = document.getElementById('uUser').value.trim();
+  const password = document.getElementById('uPass').value;
+  const isAdmin = document.getElementById('uIsAdmin').checked;
+
+  if (!name || !username) { toast('يرجى إدخال الاسم واسم المستخدم'); return; }
+  if (!id && !password) { toast('يرجى إدخال كلمة مرور للمستخدم الجديد'); return; }
+  if (!id && window.isUsernameTakenGlobally && isUsernameTakenGlobally(username, window.ACTIVE_COMPANY_ID)) {
+    toast('اسم المستخدم مستخدم بالفعل، اختر اسمًا آخر'); return;
+  }
+
+  const perms = {};
+  PERM_MODULES.forEach(m => {
+    perms[m.id] = {
+      view: document.getElementById(`perm_${m.id}_view`).checked,
+      add: document.getElementById(`perm_${m.id}_add`).checked,
+      edit: document.getElementById(`perm_${m.id}_edit`).checked,
+      delete: document.getElementById(`perm_${m.id}_delete`).checked,
+    };
+  });
+
+  if (id) {
+    const u = DB.users.find(x => x.id === id);
+    if (u) {
+      u.name = name; u.isAdmin = isAdmin; u.perms = perms;
+      if (password) u.password = password;
+    }
+  } else {
+    DB.users.push({ id: uid(), name, username, password, isAdmin, perms });
+  }
+
+  saveDB();
+  logAudit(id ? 'تعديل' : 'إضافة', 'users', 'مستخدم: ' + name);
+  closeModal();
+  renderUsers(document.getElementById('content'));
+  toast('تم الحفظ بنجاح');
+}
+
+function deleteUser(id) {
+  if (DB.users.length <= 1) { toast('لا يمكن حذف آخر مستخدم في الشركة'); return; }
+  if (id === DB.currentUserId) { toast('لا يمكنك حذف المستخدم الحالي (اللي مسجل بيه دخولك)'); return; }
+  if (!confirm('تأكيد حذف هذا المستخدم؟')) return;
+  DB.users = DB.users.filter(x => x.id !== id);
+  saveDB();
+  renderUsers(document.getElementById('content'));
+  toast('تم الحذف');
 }
 
 /* ---------- 4. شجرة الحسابات والدفاتر ---------- */
@@ -858,14 +1032,7 @@ function viewInvoice(id) {
   `, null, true);
 }
 
-// التشغيل والتهيئة المباشرة بعد فتح النظام
-// loadDB أصبحت غير متزامنة (بتتصل بـ Firebase الأول) فمحتاجين ننتظرها
-// قبل ما نظهر شاشة الدخول، عشان ميحصلش دخول ببيانات فاضية قبل ما توصل من السحابة.
-window.onload = function() {
-  const loadingEl = document.getElementById('loadingScreen');
-  const loginEl = document.getElementById('loginScreen');
-  loadDB(function() {
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (loginEl) loginEl.style.display = 'flex';
-  });
-};
+/* التشغيل والتهيئة المباشرة أصبحت في js/auth.js — نقطة الدخول الوحيدة
+   للتطبيق كله هي مستمع DOMContentLoaded في نهاية ذلك الملف (بعد تحميل
+   بيانات المنصة من Firebase، تجهيز حساب المدير العام لو أول مرة،
+   ثم استعادة الجلسة المحفوظة أو إظهار شاشة تسجيل الدخول). */
